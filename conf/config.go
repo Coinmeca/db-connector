@@ -1,8 +1,6 @@
 ﻿package conf
 
 type Config struct {
-	Chains []string
-
 	Common struct {
 		ServiceId string
 	}
@@ -25,6 +23,10 @@ type Config struct {
 		ServerAddr string
 	}
 
+	Gserver struct {
+		ServerAddr string
+	}
+
 	Gclient struct {
 		GrpcPort string
 	}
@@ -32,6 +34,8 @@ type Config struct {
 	Repositories map[string]map[string]interface{}
 
 	Contracts map[string]map[string]interface{}
+
+	Chains []string
 
 	Log struct {
 		Terminal struct {
@@ -52,5 +56,21 @@ type Config struct {
 
 	AlchemyAPI struct {
 		Sepolia string
+	}
+}
+
+func NewConfig(file string) *Config {
+	c := new(Config)
+
+	if file, err := os.Open(file); err != nil {
+		panic(err)
+	} else {
+		defer file.Close()
+		if err := toml.NewDecoder(file).Decode(c); err != nil {
+			panic(err)
+		} else {
+			fmt.Print(c.Repositories)
+			return c
+		}
 	}
 }

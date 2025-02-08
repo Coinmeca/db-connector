@@ -1,8 +1,8 @@
-package modelbatch
+package batch
 
 import (
-	"coinmeca-batch/conf"
 	"context"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
