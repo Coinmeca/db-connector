@@ -1,4 +1,4 @@
-﻿package modelvault
+﻿package vault
 
 import (
 	"context"
@@ -48,6 +48,26 @@ func (v *VaultDB) SaveVaultInfo(info *vault.Vault) error {
 		)
 		return err
 	}
+	return nil
+}
+
+func (v *VaultDB) SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vault) error {
+	filter, update := v.BsonForVaultWeight(recent)
+	option := options.FindOneAndUpdate().SetUpsert(true)
+
+	err := v.colVault.FindOneAndUpdate(
+		context.Background(),
+		filter,
+		update,
+		option,
+	).Decode(info)
+	if err != nil {
+		commonlog.Logger.Error("SaveVaultInfo",
+			zap.String("BsonforSaveVaultInfo", err.Error()),
+		)
+		return err
+	}
+
 	return nil
 }
 
@@ -251,35 +271,6 @@ func (v *VaultDB) GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
 	}
 
 	return tokens, nil
-}
-
-func (v *VaultDB) SaveVaultInfo(recent *vault.Recent, info *vault.Vault) error {
-	filter, update := v.BsonForVaultWeight(recent)
-	option := options.FindOneAndUpdate().SetUpsert(true)
-
-	err := v.colVault.FindOneAndUpdate(
-		context.Background(),
-		filter,
-		update,
-		option,
-	).Decode(info)
-	if err != nil {
-		commonlog.Logger.Error("SaveVaultInfo",
-			zap.String("BsonforSaveVaultInfo", err.Error()),
-		)
-		return err
-	}
-
-	return nil
-}
-
-func (f *VaultDB) GetVault(chainId, address string) (*vault.Vault, error) {
-	filter := bson.M{"chainId": chainId, "address": strings.ToLower(address)}
-
-	var result vault.Vault
-	err := f.colVault.FindOne(context.Background(), filter).Decode(&result)
-
-	return &result, err
 }
 
 // Check if the document exists

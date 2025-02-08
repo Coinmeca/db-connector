@@ -1,4 +1,4 @@
-package modelmarket
+package market
 
 import (
 	"github.com/coinmeca/go-common/commonmethod/market"

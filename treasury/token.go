@@ -1,4 +1,4 @@
-﻿package modeltreasury
+﻿package treasury
 
 import (
 	"context"
@@ -36,6 +36,45 @@ func (t *TreasuryDB) SetValue(symbol, name string, value *primitive.Decimal128) 
 	return nil
 }
 
+func (t *TreasuryDB) GetValue(name, symbol *string) (*primitive.Decimal128, error) {
+	filter := bson.M{
+		"name":   name,
+		"symbol": symbol,
+	}
+
+	value := &primitive.Decimal128{}
+	err := t.colToken.FindOne(context.Background(), filter).Decode(&value)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
+}
+
+func (t *TreasuryDB) GetValues() (*map[string]primitive.Decimal128, error) {
+	cursor, err := t.colToken.Find(context.Background(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	valueMap := make(map[string]primitive.Decimal128)
+
+	for cursor.Next(context.Background()) {
+		var token bson.M
+		if err := cursor.Decode(&token); err != nil {
+			continue
+		}
+
+		value, ok := token["value"].(primitive.Decimal128)
+		if ok {
+			valueMap[token["symbol"].(string)] = value
+		}
+	}
+
+	return &valueMap, nil
+}
+
 func (t *TreasuryDB) GetTokens() ([]*bson.M, error) {
 	var result []*bson.M
 	pipeline := mongo.Pipeline{
@@ -66,43 +105,4 @@ func (t *TreasuryDB) GetTokens() ([]*bson.M, error) {
 	}
 
 	return result, nil
-}
-
-func (t *TreasuryDB) GetValues() (*map[string]primitive.Decimal128, error) {
-    cursor, err := t.colToken.Find(context.Background(), bson.M{})
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(context.Background())
-
-    valueMap := make(map[string]primitive.Decimal128)
-
-	for cursor.Next(context.Background()) {
-        var token bson.M
-        if err := cursor.Decode(&token); err != nil {
-            continue
-        }
-
-        value, ok := token["value"].(primitive.Decimal128)
-        if ok {
-			valueMap[token["symbol"].(string)] = value
-        }
-    }
-
-    return &valueMap, nil
-}
-
-func (t *TreasuryDB) GetValue(name, symbol *string) (*primitive.Decimal128, error) {
-    filter := bson.M{
-		"name": name,
-		"symbol": symbol,
-	}
-
-	value := &primitive.Decimal128{}
-	err := t.colToken.FindOne(context.Background(), filter).Decode(&value)
-	if err != nil {
-		return nil, err
-	}
-
-	return value, nil
 }

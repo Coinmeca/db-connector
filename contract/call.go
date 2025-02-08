@@ -1,4 +1,4 @@
-﻿package modelcontract
+﻿package contract
 
 import (
 	"context"

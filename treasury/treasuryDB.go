@@ -1,8 +1,8 @@
-﻿package modeltreasury
+﻿package treasury
 
 import (
-	"coinmeca-batch/conf"
 	"context"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commonmethod/treasury"
 	"go.mongodb.org/mongo-driver/bson"

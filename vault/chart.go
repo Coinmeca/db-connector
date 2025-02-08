@@ -1,4 +1,4 @@
-﻿package modelvault
+﻿package vault
 
 import (
 	"context"
@@ -73,7 +73,7 @@ func (v *VaultDB) SaveVaultChart(t *vault.Chart, interval int64) error {
 	return nil
 }
 
-func (v *VaultDB) SaveVaultChartByIntervals(t *vault.Chart) error {
+func (v *VaultDB) SaveChartByIntervals(t *vault.Chart) error {
 	_, err := v.colChart.Aggregate(
 		context.Background(),
 		v.BsonForChartByIntervals(t),
@@ -82,6 +82,22 @@ func (v *VaultDB) SaveVaultChartByIntervals(t *vault.Chart) error {
 	// 에러 처리
 	if err != nil {
 		commonlog.Logger.Error("Vault SaveChart with pipeline",
+			zap.String("Failed to aggregate chart", err.Error()),
+		)
+		return err
+	}
+
+	return nil
+}
+
+func (v *VaultDB) SaveChartWithVolumeByIntervals(chart *vault.Chart, interval int64) error {
+	_, err := v.colChart.Aggregate(
+		context.Background(),
+		v.BsonForChartWithVolumeByIntervals(chart),
+	)
+
+	if err != nil {
+		commonlog.Logger.Error("Vault SaveChartByIntervals with pipeline",
 			zap.String("Failed to aggregate chart", err.Error()),
 		)
 		return err
@@ -239,46 +255,6 @@ func (v *VaultDB) GetChartSubLast(chainId, address *string) (chartSub *vault.Cha
 	return chartSub
 }
 
-
-func (v *VaultDB) SaveVaultChart(chart *vault.Chart, interval int64) error {
-	last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
-	if last != nil && last.Time == chart.Time {
-		chart.Open = last.Close
-	}
-
-	filter, update := v.BsonForVaultChart(chart)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
-
-	err := v.colChart.FindOneAndUpdate(
-		context.Background(),
-		filter,
-		update,
-		option,
-	).Decode(chart)
-	if err != nil {
-		commonlog.Logger.Error("SaveVaultChart",
-			zap.String("FindOneAndUpdate1", err.Error()),
-		)
-	}
-	return nil
-}
-
-func (v *VaultDB) SaveVaultChartByIntervals(chart *vault.Chart, interval int64) error {
-	_, err := v.colChart.Aggregate(
-		context.Background(),
-		v.BsonForVaultChartByIntervals(chart),
-	)
-
-	if err != nil {
-		commonlog.Logger.Error("Vault SaveChartByIntervals with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
-		)
-		return err
-	}
-
-	return nil
-}
-
 func (v *VaultDB) SaveVaultChartVolume(chart *vault.Chart, interval int64) error {
 	last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
 	if last != nil && last.Time == chart.Time {
@@ -315,24 +291,6 @@ func (v *VaultDB) SaveVaultChartVolumesByIntervals(chart *vault.Chart) error {
 		return err
 	}
 
-	return nil
-}
-
-func (v *VaultDB) SaveVaultChartSub(t *vault.ChartSub) error {
-	filter, update := v.BsonForVaultChartSub(t)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
-
-	err := v.colChartSub.FindOneAndUpdate(
-		context.Background(),
-		filter,
-		update,
-		option,
-	).Decode(t)
-	if err != nil {
-		commonlog.Logger.Error("SaveVaultChartSub",
-			zap.String("Failed to update chart", err.Error()),
-		)
-	}
 	return nil
 }
 
@@ -412,24 +370,4 @@ func (v *VaultDB) GetVaultChartSubsAtTime(time *int64, chainId *string, addresse
 	}
 
 	return result
-}
-
-func (v *VaultDB) GetChartLast(chainId, address *string, interval *int64) *vault.Chart {
-	chart := &vault.Chart{}
-
-	filter := bson.M{
-		"chainId": chainId,
-		"address": strings.ToLower(*address),
-	}
-
-	err := v.colChart.FindOne(
-		context.Background(),
-		filter,
-		options.FindOne().SetSort(bson.D{{"time", -1}}),
-	).Decode(chart)
-	if err != nil && err != mongo.ErrNoDocuments {
-		return nil
-	}
-
-	return chart
 }

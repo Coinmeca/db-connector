@@ -1,4 +1,4 @@
-﻿package modelvault
+﻿package vault
 
 import (
 	"context"

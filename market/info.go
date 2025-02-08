@@ -1,4 +1,4 @@
-﻿package modelmarket
+﻿package market
 
 import (
 	"context"
@@ -98,6 +98,9 @@ func (e *MarketDB) SaveOrderbook(o market.OutputOrderbookResult) error {
 func (m *MarketDB) GetMarket(chainId, address *string) (*market.Market, error) {
 	mk := &market.Market{}
 	if err := m.colMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "address": strings.ToLower(*address)}, nil).Decode(mk); err != nil {
+		commonlog.Logger.Debug("MarketDB",
+			zap.String("GetMarket", err.Error()),
+		)
 		return nil, err
 	} else {
 		return mk, nil
@@ -148,16 +151,4 @@ func (m *MarketDB) GetAllMarkets() ([]*market.Market, error) {
 	}
 
 	return markets, nil
-}
-
-func (m *MarketDB) GetMarket(chainId, address *string) (*market.Market, error) {
-	var mk market.Market
-	if err := m.colMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "address": strings.ToLower(*address)}, nil).Decode(&mk); err != nil {
-		commonlog.Logger.Debug("MarketDB",
-			zap.String("GetMarket", err.Error()),
-		)
-		return nil, err
-	} else {
-		return &mk, nil
-	}
 }

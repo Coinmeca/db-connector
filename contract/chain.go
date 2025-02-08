@@ -1,7 +1,6 @@
-﻿package modelcontract
+﻿package contract
 
 import (
-	"coinmeca-trader/key"
 	"context"
 	"time"
 
@@ -10,36 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
-
-func (c *ContractDB) ConnectKeyManager(key *key.KeyManager) {
-	c.key = key
-}
-
-func (c *ContractDB) GetTargetChains() []string {
-	now := time.Now().Unix()
-	if c.chainsUpdate > (now-86400) && c.chains != nil && len(c.chains) > 0 {
-		return c.chains
-	}
-
-	chains := c.conf.Chains
-	if len(chains) == 0 {
-
-		chainsInfo := c.GetChains()
-		if len(chainsInfo) > 0 {
-			for _, chain := range chainsInfo {
-				chains = append(chains, chain.ChainId)
-			}
-		}
-	}
-
-	if len(chains) == 0 {
-		return nil
-	}
-
-	c.chains = chains
-	c.chainsUpdate = now
-	return chains
-}
 
 func (c *ContractDB) GetChains() []*commondatabase.Chain {
 	cursor, err := c.colChain.Find(context.Background(), bson.M{})
@@ -74,4 +43,30 @@ func (c *ContractDB) GetChains() []*commondatabase.Chain {
 	}
 
 	return result
+}
+
+func (c *ContractDB) GetTargetChains() []string {
+	now := time.Now().Unix()
+	if c.chainsUpdate > (now-86400) && c.chains != nil && len(c.chains) > 0 {
+		return c.chains
+	}
+
+	chains := c.conf.Chains
+	if len(chains) == 0 {
+
+		chainsInfo := c.GetChains()
+		if len(chainsInfo) > 0 {
+			for _, chain := range chainsInfo {
+				chains = append(chains, chain.ChainId)
+			}
+		}
+	}
+
+	if len(chains) == 0 {
+		return nil
+	}
+
+	c.chains = chains
+	c.chainsUpdate = now
+	return chains
 }

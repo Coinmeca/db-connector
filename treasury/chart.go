@@ -1,10 +1,11 @@
-﻿package modeltreasury
+﻿package treasury
 
 import (
 	"context"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/treasury"
@@ -31,13 +32,13 @@ func (t *TreasuryDB) SaveTreasuryChart(chart *treasury.Chart) error {
 	return nil
 }
 
-func (t *TreasuryDB) UpdateOrInsertDailyChart(chart *treasury.Chart) error {
+func (t *TreasuryDB) UpsertDailyChart(chart *treasury.Chart) error {
 	filter, update := t.BsonForChart(chart)
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := t.colChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(chart)
 	if err != nil {
-		commonlog.Logger.Error("UpdateOrInsertDailyChart", zap.String("Failed to update or insert chart", err.Error()))
+		commonlog.Logger.Error("UpsertDailyChart", zap.String("Failed to update or insert chart", err.Error()))
 		return err
 	}
 	return nil

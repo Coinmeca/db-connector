@@ -1,8 +1,8 @@
-package modelaccount
+package account
 
 import (
-	"coinmeca-trader/conf"
 	"context"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"

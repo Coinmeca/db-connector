@@ -1,11 +1,10 @@
-﻿package modelmarket
+﻿package market
 
 import (
-	"coinmeca-batch/conf"
 	"context"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
-	"github.com/coinmeca/go-common/commonprotocol"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/market"
@@ -70,20 +69,24 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 		return nil, err
 	}
 
+	if err := historyIndex(r.colHistory); err != nil {
+		return nil, err
+	}
+
 	commonlog.Logger.Debug("load repository",
 		zap.String("marketDB", r.config.Common.ServiceId),
 	)
 	return r, nil
 }
 
-func (m *MarketDB) Start() error {
+func (e *MarketDB) Start() error {
 	return func() (err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				err = r.(error)
 			}
 		}()
-		close(m.start)
+		close(e.start)
 		return
 	}()
 }
@@ -115,26 +118,15 @@ func chartIndex(col *mongo.Collection) error {
 	return err
 }
 
-func (m *MarketDB) GetAllMarketAddresses() ([]*commonprotocol.Contract, error) {
-	var markets []*commonprotocol.Contract
-	option := options.Find().SetProjection(bson.M{
-		"address": 1,
-	})
-	cursor, err := m.colMarket.Find(context.Background(), bson.M{}, option)
-
-	if err != nil {
-		return markets, err
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		mk := &commonprotocol.Contract{}
-		if err := cursor.Decode(&mk); err == nil {
-			mk.Cate = "abstract"
-			mk.Name = "market"
-			markets = append(markets, mk)
-		}
+func historyIndex(col *mongo.Collection) error {
+	index := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "user", Value: 1},
+			{Key: "txHash", Value: 1},
+		},
+		Options: options.Index().SetUnique(true).SetSparse(true),
 	}
 
-	return markets, nil
+	_, err := col.Indexes().CreateOne(context.Background(), index)
+	return err
 }

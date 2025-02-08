@@ -1,15 +1,14 @@
 package model
 
 import (
-	"coinmeca-trader/conf"
-	"coinmeca-trader/key"
-	"coinmeca-trader/model/modelaccount"
-	"coinmeca-trader/model/modelcontract"
-	"coinmeca-trader/model/modelfarm"
-	"coinmeca-trader/model/modelhistory"
-	"coinmeca-trader/model/modelmarket"
-	"coinmeca-trader/model/modeltreasury"
-	"coinmeca-trader/model/modelvault"
+	"db-connector/conf"
+	"db-connector/contract"
+	"db-connector/farm"
+	"db-connector/history"
+	"db-connector/key"
+	"db-connector/market"
+	"db-connector/treasury"
+	"db-connector/vault"
 	"fmt"
 	"reflect"
 	"sync"
@@ -43,19 +42,20 @@ func NewRepositories(c *conf.Config, key *key.KeyManager) (*Repositories, error)
 }
 
 func (r *Repositories) initializeRepositories(key *key.KeyManager) error {
-	contractDB, err := modelcontract.NewDB(r.conf, key)
+	contractDB, err := contract.NewDB(r.conf, key)
 	if err != nil {
 		return err
 	}
 	r.register(contractDB)
 
 	repoInitializers := []func(*conf.Config) (commondatabase.IRepository, error){
-		modelhistory.NewDB,
-		modelvault.NewDB,
-		modelmarket.NewDB,
-		modelfarm.NewDB,
-		modeltreasury.NewDB,
-		modelaccount.NewDB,
+		batch.NewDB,
+		history.NewDB,
+		vault.NewDB,
+		market.NewDB,
+		farm.NewDB,
+		treasury.NewDB,
+		account.NewDB,
 	}
 
 	for _, initializer := range repoInitializers {
@@ -90,44 +90,6 @@ func (r *Repositories) register(repo commondatabase.IRepository) error {
 	}
 	r.elems[repoType] = reflect.ValueOf(repo)
 	return nil
-}
-
-func NewRepositoriesBackup(c *conf.Config) (*Repositories, error) {
-	r := &Repositories{
-		conf:  c,
-		elems: make(map[reflect.Type]reflect.Value),
-	}
-
-	for _, c := range []struct {
-		constructor RepositoryConstructor
-		config      *conf.Config
-	}{
-		//{NewtraderDB, c},
-		//{NewContractDB, c},
-		//{modelvault.NewDB, c},
-		//{modelmarket.NewDB, c},
-		//{modelfarm.NewDB, c},
-	} {
-		if err := r.Register(c.constructor, c.config); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := func() error {
-		r.lock.Lock()
-		defer r.lock.Unlock()
-
-		for _, elem := range r.elems {
-			if err := elem.Interface().(commondatabase.IRepository).Start(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return nil, err
-	}
-
-	return r, nil
 }
 
 func (r *Repositories) Register(constructor RepositoryConstructor, config *conf.Config) error {
@@ -169,4 +131,44 @@ func (r *Repositories) Get(rs ...interface{}) error {
 	}
 
 	return nil
+}
+
+func NewRepositoriesBackup(c *conf.Config) (*Repositories, error) {
+	r := &Repositories{
+		conf:  c,
+		elems: make(map[reflect.Type]reflect.Value),
+	}
+
+	for _, c := range []struct {
+		constructor RepositoryConstructor
+		config      *conf.Config
+	}{
+		//{NewTraderDB, c},
+		//{NewBatchDB, c},
+
+		//{contract.NewDB, c},
+		//{vault.NewDB, c},
+		//{market.NewDB, c},
+		//{farm.NewDB, c},
+	} {
+		if err := r.Register(c.constructor, c.config); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := func() error {
+		r.lock.Lock()
+		defer r.lock.Unlock()
+
+		for _, elem := range r.elems {
+			if err := elem.Interface().(commondatabase.IRepository).Start(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }

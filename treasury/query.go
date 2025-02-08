@@ -1,4 +1,4 @@
-package modeltreasury
+package treasury
 
 import (
 	"time"

@@ -1,13 +1,10 @@
-﻿package modelfarm
+﻿package farm
 
 import (
-	"coinmeca-batch/conf"
 	"context"
-	"strings"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
-	"github.com/coinmeca/go-common/commonmethod/farm"
-	"github.com/coinmeca/go-common/commonprotocol"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"
@@ -58,6 +55,10 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 	}
 
 	if err := chartIndex(r.colChart); err != nil {
+		return nil, err
+	}
+
+	if err := historyIndex(r.colHistory); err != nil {
 		return nil, err
 	}
 
@@ -116,72 +117,4 @@ func historyIndex(col *mongo.Collection) error {
 
 	_, err := col.Indexes().CreateOne(context.Background(), index)
 	return err
-}
-
-func (f *FarmDB) GetAllFarmAddresses() ([]*commonprotocol.Contract, error) {
-	var farms []*commonprotocol.Contract
-	option := options.Find().SetProjection(bson.M{
-		"chainId": 1,
-		"address": 1,
-		"main":    1,
-		"name":    1,
-	})
-	cursor, err := f.colFarm.Find(context.Background(), bson.M{}, option)
-
-	if err != nil {
-		return farms, err
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		f := &farm.Farm{}
-		if err := cursor.Decode(&f); err == nil {
-			farm := &commonprotocol.Contract{
-				Cate:    "abstract",
-				ChainId: f.ChainId,
-				Address: f.Address,
-			}
-			if strings.ToLower(f.Address) == strings.ToLower(f.Main) {
-				farm.Name = "farm-main"
-			} else {
-				farm.Name = "farm-derive"
-			}
-			farms = append(farms, farm)
-		}
-	}
-
-	return farms, nil
-}
-
-func (f *FarmDB) GetAllFarmAddresses() ([]*commonprotocol.Contract, error) {
-	var farms []*commonprotocol.Contract
-	option := options.Find().SetProjection(bson.M{
-		"address": 1,
-		"main":    1,
-		"name":    1,
-	})
-	cursor, err := f.colFarm.Find(context.Background(), bson.M{}, option)
-
-	if err != nil {
-		return farms, err
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		f := &farm.Farm{}
-		if err := cursor.Decode(&f); err == nil {
-			farm := &commonprotocol.Contract{
-				Cate:    "abstract",
-				Address: f.Address,
-			}
-			if strings.ToLower(f.Address) == strings.ToLower(f.Main) {
-				farm.Name = "farm-main"
-			} else {
-				farm.Name = "farm-derive"
-			}
-			farms = append(farms, farm)
-		}
-	}
-
-	return farms, nil
 }

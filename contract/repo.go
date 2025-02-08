@@ -1,4 +1,4 @@
-﻿package modelcontract
+﻿package contract
 
 import (
 	"github.com/coinmeca/go-common/commondatabase"
@@ -9,8 +9,8 @@ func (c *ContractDB) GetEthRepo(chainId string) *commonrepository.EthRepository 
 	ethRepo, ok := c.ethRepo[chainId]
 	if !ok {
 		current := c.key.GetCurrentKey("alchemy", chainId)
-		c.ethRepo[chainId] = commonrepository.NewEthRepository(current.Url + current.Key)
-		ethRepo = c.ethRepo[chainId]
+		ethRepo = commonrepository.NewEthRepository(current.Url + current.Key)
+		c.ethRepo[chainId] = ethRepo
 	}
 	return ethRepo
 }

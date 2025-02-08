@@ -1,4 +1,4 @@
-package modelfarm
+package farm
 
 import (
 	"github.com/coinmeca/go-common/commonmethod/farm"

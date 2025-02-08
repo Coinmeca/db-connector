@@ -1,4 +1,4 @@
-﻿package modelaccount
+﻿package account
 
 import (
 	"fmt"

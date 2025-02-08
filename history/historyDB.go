@@ -1,8 +1,8 @@
-package modelhistory
+package history
 
 import (
-	"coinmeca-trader/conf"
 	"context"
+	"db-connector/conf"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -82,6 +82,32 @@ func txIndex(col *mongo.Collection) error {
 
 	_, err := col.Indexes().CreateOne(context.Background(), index)
 	return err
+}
+
+func (h *HistoryDB) SaveTransactionRecord(txDetail *commondatabase.TxData) error {
+	filter := bson.M{"hash": txDetail.Hash}
+	update := bson.M{
+		"$set": bson.M{
+			"blockHash":   txDetail.BlockHash,
+			"blockNumber": txDetail.BlockNumber,
+			"hash":        txDetail.Hash,
+			"chainId":     txDetail.ChainId,
+			"accessList":  txDetail.AccessList,
+			"from":        txDetail.From,
+			"gas":         txDetail.Gas,
+			"gasPrice":    txDetail.GasPrice,
+			"input":       txDetail.Input,
+			"to":          txDetail.To,
+			"cate":        txDetail.Cate,
+		},
+	}
+	opts := options.Update().SetUpsert(true)
+
+	_, err := h.colTxHistory.UpdateOne(context.Background(), filter, update, opts)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *HistoryDB) PollingTxs(ctx context.Context, notificationChan chan<- *commondatabase.GrpcTxData, interval time.Duration) error {

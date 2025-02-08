@@ -1,4 +1,4 @@
-﻿package modelfarm
+﻿package farm
 
 import (
 	"context"
@@ -49,16 +49,18 @@ func (f *FarmDB) SaveFarmInfo(info *farm.Farm) error {
 	return nil
 }
 
-func (f *FarmDB) GetFarm(chainId, address *string) (*farm.Farm, error) {
-	var farm farm.Farm
-	filter := bson.M{"chainId": chainId, "address": strings.ToLower(*address)}
-	if err := f.colFarm.FindOne(context.Background(), filter, nil).Decode(&farm); err != nil {
+func (f *FarmDB) GetFarm(chainId, address string) *farm.Farm {
+	result := &farm.Farm{}
+
+	filter := bson.M{"chainId": chainId, "address": strings.ToLower(address)}
+	if err := f.colFarm.FindOne(context.Background(), filter, nil).Decode(&result); err != nil {
 		commonlog.Logger.Error("GetFarms",
 			zap.String("not found ", err.Error()),
 		)
-		return nil, err
+		return nil
 	}
-	return &farm, nil
+
+	return result
 }
 
 func (f *FarmDB) GetFarms(chainId *string) ([]*farm.Farm, error) {
@@ -82,16 +84,4 @@ func (f *FarmDB) GetFarms(chainId *string) ([]*farm.Farm, error) {
 	}
 
 	return farms, nil
-}
-
-func (f *FarmDB) GetFarm(chainId, address string) *farm.Farm {
-	filter := bson.M{"chainId": chainId, "address": strings.ToLower(address)}
-
-	result := &farm.Farm{}
-	err := f.colFarm.FindOne(context.Background(), filter).Decode(&result)
-	if err != nil {
-		return nil
-	}
-
-	return result
 }

@@ -1,4 +1,4 @@
-﻿package modelmarket
+﻿package market
 
 import (
 	"context"
@@ -12,20 +12,20 @@ import (
 	"go.uber.org/zap"
 )
 
-func (m *MarketDB) SaveMarketChart(k *market.Chart, interval int64) error {
-	last := m.GetChartLast(&k.ChainId, &k.Address, &interval)
-	if last != nil && last.Time == k.Time {
-		k.Open = last.Close
+func (m *MarketDB) SaveMarketChart(chart *market.Chart, interval int64) error {
+	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+	if last != nil && last.Time == chart.Time {
+		chart.Open = last.Close
 	}
 
-	filter, update := m.BsonForChart(k, &interval)
+	filter, update := m.BsonForMarketChart(chart, &interval)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 	err := m.colChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
 		option,
-	).Decode(k)
+	).Decode(chart)
 
 	if err != nil {
 		commonlog.Logger.Error("Market SaveChart",
@@ -36,10 +36,10 @@ func (m *MarketDB) SaveMarketChart(k *market.Chart, interval int64) error {
 	return nil
 }
 
-func (m *MarketDB) SaveMarketChartByIntervals(k *market.Chart) error {
+func (m *MarketDB) SaveMarketChartByIntervals(chart *market.Chart) error {
 	_, err := m.colChart.Aggregate(
 		context.Background(),
-		m.BsonForChartByIntervals(k),
+		m.BsonForChartByIntervals(chart),
 	)
 
 	if err != nil {
@@ -91,6 +91,7 @@ func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *mark
 		filter,
 		options.FindOne().SetSort(bson.D{{"time", -1}}),
 	).Decode(chart)
+
 	if err != nil && err != mongo.ErrNoDocuments {
 		commonlog.Logger.Error("Market GetChartLast",
 			zap.String("Failed to get chart", err.Error()),
@@ -99,31 +100,6 @@ func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *mark
 	}
 
 	return chart
-}
-
-func (m *MarketDB) SaveMarketChart(chart *market.Chart, interval int64) error {
-	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
-	if last != nil && last.Time == chart.Time {
-		chart.Open = last.Close
-	}
-
-	filter, update := m.BsonForMarketChart(chart, &interval)
-	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-
-	err := m.colChart.FindOneAndUpdate(
-		context.Background(),
-		filter,
-		update,
-		option,
-	).Decode(chart)
-	if err != nil {
-		commonlog.Logger.Error("Market SaveChart",
-			zap.String("Failed to update chart", err.Error()),
-		)
-	}
-	// }
-
-	return nil
 }
 
 func (m *MarketDB) SaveMarketChartVolume(chart *market.Chart, interval int64) error {
@@ -164,28 +140,4 @@ func (m *MarketDB) SaveMarketChartVolumesByIntervals(chart *market.Chart) error 
 	}
 
 	return nil
-}
-
-func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *market.Chart {
-	chart := &market.Chart{}
-
-	filter := bson.M{
-		"chainId":  chainId,
-		"address":  strings.ToLower(*address),
-		"interval": interval,
-	}
-
-	err := m.colChart.FindOne(
-		context.Background(),
-		filter,
-		options.FindOne().SetSort(bson.D{{"time", -1}}),
-	).Decode(chart)
-	if err != nil && err != mongo.ErrNoDocuments {
-		commonlog.Logger.Error("Market GetChartLast",
-			zap.String("Failed to get chart", err.Error()),
-		)
-		return nil
-	}
-
-	return chart
 }

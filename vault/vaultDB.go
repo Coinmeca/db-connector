@@ -1,8 +1,8 @@
 ﻿package vault
 
 import (
-	"conf"
 	"context"
+	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
 

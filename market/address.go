@@ -1,4 +1,4 @@
-﻿package modelmarket
+﻿package market
 
 import (
 	"context"

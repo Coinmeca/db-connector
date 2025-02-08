@@ -1,4 +1,4 @@
-﻿package modelcontract
+﻿package contract
 
 import (
 	"context"
@@ -19,6 +19,33 @@ func convertAbiType(inputData *[]map[string]interface{}) (*abi.ABI, error) {
 	} else {
 		return &result, nil
 	}
+}
+
+func (c *ContractDB) GetContract(name string) (*commonprotocol.Contract, error) {
+	temp := &commondatabase.Contract{}
+	err := c.colContract.FindOne(context.Background(), bson.M{
+		"name": name,
+	}).Decode(temp)
+	if err != nil {
+		return nil, err
+	}
+
+	abiData, err := convertAbiType(temp.Abi)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &commonprotocol.Contract{
+		Id:        temp.Id,
+		ChainId:   temp.ChainId,
+		ServiceId: temp.ServiceId,
+		Cate:      temp.Cate,
+		Name:      temp.Name,
+		Address:   temp.Address,
+		Abi:       abiData,
+	}
+
+	return result, nil
 }
 
 func (c *ContractDB) GetContracts() ([]*commonprotocol.Contract, error) {
@@ -83,31 +110,4 @@ func (c *ContractDB) GetContractsByCate(cate string) ([]*commonprotocol.Contract
 		}
 		return result, nil
 	}
-}
-
-func (c *ContractDB) GetContract(name string) (*commonprotocol.Contract, error) {
-	temp := &commondatabase.Contract{}
-	err := c.colContract.FindOne(context.Background(), bson.M{
-		"name": name,
-	}).Decode(temp)
-	if err != nil {
-		return nil, err
-	}
-
-	abiData, err := convertAbiType(temp.Abi)
-	if err != nil {
-		return nil, err
-	}
-
-	result := &commonprotocol.Contract{
-		Id:        temp.Id,
-		ChainId:   temp.ChainId,
-		ServiceId: temp.ServiceId,
-		Cate:      temp.Cate,
-		Name:      temp.Name,
-		Address:   temp.Address,
-		Abi:       abiData,
-	}
-
-	return result, nil
 }

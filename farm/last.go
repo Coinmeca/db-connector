@@ -1,4 +1,4 @@
-package modelfarm
+package farm
 
 import (
 	"context"

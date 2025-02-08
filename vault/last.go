@@ -1,10 +1,11 @@
-﻿package modelvault
+﻿package vault
 
 import (
 	"context"
-	"github.com/coinmeca/go-common/commonutils"
 	"strings"
 	"time"
+
+	"github.com/coinmeca/go-common/commonutils"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/vault"

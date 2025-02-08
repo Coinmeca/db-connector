@@ -1,4 +1,4 @@
-package modelvault
+package vault
 
 import (
 	"strings"
@@ -69,31 +69,31 @@ func (v *VaultDB) BsonForValue(chainId, address *string, value *primitive.Decima
 	return filter, update
 }
 
-func (v *VaultDB) BsonForChart(t *vault.Chart, interval *int64) (bson.M, bson.M) {
+func (v *VaultDB) BsonForChart(chart *vault.Chart, interval *int64) (bson.M, bson.M) {
 	var zero primitive.Decimal128
 	var open primitive.Decimal128
 
 	filter := bson.M{
-		"chainId":  t.ChainId,
-		"address":  t.Address,
-		"time":     t.Time,
+		"chainId":  chart.ChainId,
+		"address":  chart.Address,
+		"time":     chart.Time,
 		"interval": interval,
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"close": t.Close,
+			"close": chart.Close,
 		},
 		"$max": bson.M{
-			"high": t.Close,
+			"high": chart.Close,
 		},
 		"$min": bson.M{
-			"low": t.Close,
+			"low": chart.Close,
 		},
 		"$setOnInsert": bson.M{
-			"chainId":  t.ChainId,
-			"address":  t.Address,
-			"time":     t.Time,
+			"chainId":  chart.ChainId,
+			"address":  chart.Address,
+			"time":     chart.Time,
 			"interval": interval,
 			"open":     open,
 			"volume":   zero,
@@ -103,22 +103,22 @@ func (v *VaultDB) BsonForChart(t *vault.Chart, interval *int64) (bson.M, bson.M)
 	return filter, update
 }
 
-func (v *VaultDB) BsonForChartByIntervals(t *vault.Chart) *[]bson.M {
+func (v *VaultDB) BsonForChartByIntervals(chart *vault.Chart) *[]bson.M {
 	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
 
 	var zero primitive.Decimal128
 	var pipeline []bson.M
 	pipeline = append(pipeline, bson.M{
 		"$match": bson.M{
-			"chainId": t.ChainId,
-			"address": t.Address,
+			"chainId": chart.ChainId,
+			"address": chart.Address,
 		},
 	})
 
 	for _, interval := range intervals {
-		time := commonutils.TruncateUnix(t.Time, interval)
-		last := v.GetChartLast(&t.ChainId, &t.Address, &interval)
-		open := t.Close
+		time := commonutils.TruncateUnix(chart.Time, interval)
+		last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+		open := chart.Close
 
 		if last != nil && last.Time == time {
 			open = last.Close
@@ -130,19 +130,19 @@ func (v *VaultDB) BsonForChartByIntervals(t *vault.Chart) *[]bson.M {
 				"interval": interval,
 			},
 			"$set": bson.M{
-				"close": t.Close,
+				"close": chart.Close,
 			},
 			"$max": bson.M{
-				"high": t.Close,
+				"high": chart.Close,
 			},
 			"$min": bson.M{
-				"low": t.Close,
+				"low": chart.Close,
 			},
 			"$setOnInsert": bson.M{
-				"chainId":  t.ChainId,
-				"address":  t.Address,
-				"time":     time,
+				"chainId":  chart.ChainId,
+				"address":  chart.Address,
 				"interval": interval,
+				"time":     time,
 				"open":     open,
 				"volume":   zero,
 			},
@@ -152,22 +152,74 @@ func (v *VaultDB) BsonForChartByIntervals(t *vault.Chart) *[]bson.M {
 	return &pipeline
 }
 
-func (v *VaultDB) BsonForChartSub(t *vault.ChartSub) (bson.M, bson.M) {
+func (v *VaultDB) BsonForChartWithVolumeByIntervals(chart *vault.Chart) *[]bson.M {
+	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
+
+	var open primitive.Decimal128
+	var pipeline []bson.M
+	pipeline = append(pipeline, bson.M{
+		"$match": bson.M{
+			"chainId": chart.ChainId,
+			"address": chart.Address,
+		},
+	})
+
+	for _, interval := range intervals {
+		time := commonutils.TruncateUnix(chart.Time, interval)
+		last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+
+		if last != nil && last.Time == chart.Time {
+			open = last.Close
+		} else {
+			open = chart.Close
+		}
+
+		pipeline = append(pipeline, bson.M{
+			"$match": bson.M{
+				"time":     time,
+				"interval": interval,
+			},
+			"$set": bson.M{
+				"close": chart.Close,
+			},
+			"$max": bson.M{
+				"high": chart.Close,
+			},
+			"$min": bson.M{
+				"low": chart.Close,
+			},
+			"$setOnInsert": bson.M{
+				"chainId":  chart.ChainId,
+				"address":  chart.Address,
+				"interval": interval,
+				"time":     time,
+				"open":     open,
+			},
+			"$inc": bson.M{
+				"volume": chart.Volume,
+			},
+		})
+	}
+
+	return &pipeline
+}
+
+func (v *VaultDB) BsonForChartSub(chart *vault.ChartSub) (bson.M, bson.M) {
 	filter := bson.M{
-		"chainId": t.ChainId,
-		"address": t.Address,
-		"time":    t.Time,
+		"chainId": chart.ChainId,
+		"address": chart.Address,
+		"time":    chart.Time,
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"chainId":     t.ChainId,
-			"address":     t.Address,
-			"time":        t.Time,
-			"weight":      t.Weight,
-			"locked":      t.Locked,
-			"value":       t.Value,
-			"valueLocked": t.ValueLocked,
+			"chainId":     chart.ChainId,
+			"address":     chart.Address,
+			"time":        chart.Time,
+			"weight":      chart.Weight,
+			"locked":      chart.Locked,
+			"value":       chart.Value,
+			"valueLocked": chart.ValueLocked,
 		},
 	}
 
@@ -178,16 +230,16 @@ func (v *VaultDB) BsonForChartSub(t *vault.ChartSub) (bson.M, bson.M) {
 // update = bson.A{
 // 	bson.M{
 // 		"$set": bson.M{
-// 			"chainId": t.ChainId,
-// 			"address": t.Address,
-// 			"time":    t.Time,
-// 			"weight":  t.Weight,
-// 			"locked":  t.Locked,
+// 			"chainId": chart.ChainId,
+// 			"address": chart.Address,
+// 			"time":    chart.Time,
+// 			"weight":  chart.Weight,
+// 			"locked":  chart.Locked,
 // 			"value": bson.M{
 // 				"$cond": bson.M{
 // 					"if":   bson.M{"$eq": bson.A{bson.M{"$type": "$value"}, "missing"}},
 // 					"then": nil,
-// 					"else": t.Value,
+// 					"else": chart.Value,
 // 				},
 // 			},
 // 			"valueLocked": bson.M{
@@ -196,7 +248,7 @@ func (v *VaultDB) BsonForChartSub(t *vault.ChartSub) (bson.M, bson.M) {
 // 					"then": nil,
 // 					"else": bson.M{
 // 						"$divide": bson.A{
-// 							bson.M{"$multiply": bson.A{t.Value, t.Locked}},
+// 							bson.M{"$multiply": bson.A{chart.Value, chart.Locked}},
 // 							math.Pow10(18),
 // 						},
 // 					},
@@ -277,51 +329,6 @@ func (v *VaultDB) BsonForVaultChart(chart *vault.Chart) (bson.M, bson.M) {
 	return filter, update
 }
 
-func (v *VaultDB) BsonForVaultChartByIntervals(chart *vault.Chart) *[]bson.M {
-	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
-
-	var open primitive.Decimal128
-	var pipeline []bson.M
-	pipeline = append(pipeline, bson.M{
-		"$match": bson.M{
-			"chainId": chart.ChainId,
-			"address": chart.Address,
-		},
-	})
-
-	for _, interval := range intervals {
-		time := commonutils.TruncateUnix(chart.Time, interval)
-		last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
-
-		if last != nil && last.Time == chart.Time {
-			open = last.Close
-		} else {
-			open = chart.Close
-		}
-
-		pipeline = append(pipeline, bson.M{
-			"$match": bson.M{
-				"time":     time,
-				"interval": interval,
-			},
-			"$set": bson.M{"close": chart.Close},
-			"$max": bson.M{"high": chart.Close},
-			"$min": bson.M{"low": chart.Close},
-			"$setOnInsert": bson.M{
-				"chainId": chart.ChainId,
-				"address": chart.Address,
-				"time":    chart.Time,
-				"open":    open,
-			},
-			"$inc": bson.M{
-				"volume": chart.Volume,
-			},
-		})
-	}
-
-	return &pipeline
-}
-
 func (v *VaultDB) BsonForVaultChartVolumesByIntervals(chart *vault.Chart) *[]bson.M {
 	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
 
@@ -388,23 +395,6 @@ func (v *VaultDB) BsonForVaultChartVolume(chart *vault.Chart, interval *int64) (
 		},
 		"$inc": bson.M{
 			"volume": chart.Volume,
-		},
-	}
-	return filter, update
-}
-
-func (v *VaultDB) BsonForVaultChartSub(chart *vault.ChartSub) (bson.M, bson.M) {
-	filter := bson.M{
-		"chainId": chart.ChainId,
-		"address": chart.Address,
-		"time":    chart.Time,
-	}
-	update := bson.M{
-		"$set": bson.M{
-			"weight":      chart.Weight,
-			"locked":      chart.Locked,
-			"value":       chart.Value,
-			"valueLocked": chart.ValueLocked,
 		},
 	}
 	return filter, update
