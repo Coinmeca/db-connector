@@ -1,11 +1,9 @@
 module github.com/coinmeca/db-connector
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.21
 
 require (
-	github.com/coinmeca/go-common v0.0.99119
+	github.com/coinmeca/go-common v0.0.9912
 	github.com/ethereum/go-ethereum v1.15.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416

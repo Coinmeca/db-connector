@@ -1,11 +1,19 @@
 package db
 
 import (
-	"db-connector/batch"
-	"db-connector/conf"
 	"fmt"
 	"reflect"
 	"sync"
+
+	"github.com/coinmeca/db-connector/accountdb"
+	"github.com/coinmeca/db-connector/batch"
+	"github.com/coinmeca/db-connector/conf"
+	"github.com/coinmeca/db-connector/contractdb"
+	"github.com/coinmeca/db-connector/farmdb"
+	"github.com/coinmeca/db-connector/historydb"
+	"github.com/coinmeca/db-connector/marketdb"
+	"github.com/coinmeca/db-connector/treasurydb"
+	"github.com/coinmeca/db-connector/vaultdb"
 
 	"github.com/coinmeca/go-common/commondatabase"
 )
@@ -42,13 +50,13 @@ func NewRepositories(c *conf.Config) (*Repositories, error) {
 func (r *Repositories) initializeRepositories() error {
 	repoInitializers := []func(*conf.Config) (commondatabase.IRepository, error){
 		batch.NewDB,
-		contract.NewDB,
-		history.NewDB,
-		vault.NewDB,
-		market.NewDB,
-		farm.NewDB,
-		treasury.NewDB,
-		account.NewDB,
+		contractdb.NewDB,
+		historydb.NewDB,
+		vaultdb.NewDB,
+		marketdb.NewDB,
+		farmdb.NewDB,
+		treasurydb.NewDB,
+		accountdb.NewDB,
 	}
 
 	for _, initializer := range repoInitializers {
