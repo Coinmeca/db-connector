@@ -1,4 +1,4 @@
-package model
+package db
 
 import (
 	"db-connector/conf"
@@ -22,6 +22,10 @@ type Repositories struct {
 	lock  sync.RWMutex
 	conf  *conf.Config
 	elems map[reflect.Type]reflect.Value
+}
+
+type IRepository interface {
+	Start() error
 }
 
 func NewRepositories(c *conf.Config, key *key.KeyManager) (*Repositories, error) {
