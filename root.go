@@ -1,11 +1,12 @@
 package db
 
 import (
+	"db-connector/account"
+	"db-connector/batch"
 	"db-connector/conf"
 	"db-connector/contract"
 	"db-connector/farm"
 	"db-connector/history"
-	"db-connector/key"
 	"db-connector/market"
 	"db-connector/treasury"
 	"db-connector/vault"
@@ -28,13 +29,13 @@ type IRepository interface {
 	Start() error
 }
 
-func NewRepositories(c *conf.Config, key *key.KeyManager) (*Repositories, error) {
+func NewRepositories(c *conf.Config) (*Repositories, error) {
 	r := &Repositories{
 		conf:  c,
 		elems: make(map[reflect.Type]reflect.Value),
 	}
 
-	if err := r.initializeRepositories(key); err != nil {
+	if err := r.initializeRepositories(); err != nil {
 		return nil, err
 	}
 
@@ -45,15 +46,10 @@ func NewRepositories(c *conf.Config, key *key.KeyManager) (*Repositories, error)
 	return r, nil
 }
 
-func (r *Repositories) initializeRepositories(key *key.KeyManager) error {
-	contractDB, err := contract.NewDB(r.conf, key)
-	if err != nil {
-		return err
-	}
-	r.register(contractDB)
-
+func (r *Repositories) initializeRepositories() error {
 	repoInitializers := []func(*conf.Config) (commondatabase.IRepository, error){
 		batch.NewDB,
+		contract.NewDB,
 		history.NewDB,
 		vault.NewDB,
 		market.NewDB,

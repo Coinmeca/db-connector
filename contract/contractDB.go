@@ -4,6 +4,7 @@ import (
 	"context"
 	"db-connector/conf"
 	"db-connector/key"
+	"fmt"
 
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
@@ -27,7 +28,12 @@ type ContractDB struct {
 	start        chan struct{}
 }
 
-func NewDB(config *conf.Config, key *key.KeyManager) (commondatabase.IRepository, error) {
+func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
+	key, err := key.NewKeyManager(config)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize key manager: %v", err))
+	}
+
 	r := &ContractDB{
 		conf:    config,
 		key:     key,
@@ -36,7 +42,6 @@ func NewDB(config *conf.Config, key *key.KeyManager) (commondatabase.IRepository
 		chains:  make([]string, 0),
 	}
 
-	var err error
 	credential := options.Credential{
 		Username: config.Repositories["contractDB"]["username"].(string),
 		Password: config.Repositories["contractDB"]["pass"].(string),
