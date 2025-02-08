@@ -1,15 +1,8 @@
 package db
 
 import (
-	"db-connector/account"
 	"db-connector/batch"
 	"db-connector/conf"
-	"db-connector/contract"
-	"db-connector/farm"
-	"db-connector/history"
-	"db-connector/market"
-	"db-connector/treasury"
-	"db-connector/vault"
 	"fmt"
 	"reflect"
 	"sync"
