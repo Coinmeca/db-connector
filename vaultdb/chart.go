@@ -16,7 +16,7 @@ import (
 )
 
 func (v *VaultDB) BulkWriteChart(models []mongo.WriteModel) error {
-	result, err := v.colChart.BulkWrite(context.Background(), models)
+	result, err := v.ColChart.BulkWrite(context.Background(), models)
 	if err != nil {
 		commonlog.Logger.Error("VaultDB",
 			zap.String("BulkWriteChart", err.Error()),
@@ -28,7 +28,7 @@ func (v *VaultDB) BulkWriteChart(models []mongo.WriteModel) error {
 }
 
 func (v *VaultDB) BulkWriteChartSub(models []mongo.WriteModel) error {
-	result, err := v.colChartSub.BulkWrite(context.Background(), models)
+	result, err := v.ColChartSub.BulkWrite(context.Background(), models)
 	if err != nil {
 		commonlog.Logger.Error("VaultDB",
 			zap.String("BulkWriteChartSub", err.Error()),
@@ -49,7 +49,7 @@ func (v *VaultDB) SaveChartFromModel(models *[]mongo.WriteModel, exchange *primi
 	*models = append(*models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
 }
 
-func (v *VaultDB) SaveVaultChart(t *vault.Chart, interval int64) error {
+func (v *VaultDB) SaveChart(t *vault.Chart, interval int64) error {
 	last := v.GetChartLast(&t.ChainId, &t.Address, &interval)
 	if last != nil && last.Time == t.Time {
 		t.Open = last.Close
@@ -57,7 +57,7 @@ func (v *VaultDB) SaveVaultChart(t *vault.Chart, interval int64) error {
 
 	filter, update := v.BsonForChart(t, &interval)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
-	err := v.colChart.FindOneAndUpdate(
+	err := v.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -74,7 +74,7 @@ func (v *VaultDB) SaveVaultChart(t *vault.Chart, interval int64) error {
 }
 
 func (v *VaultDB) SaveChartByIntervals(t *vault.Chart) error {
-	_, err := v.colChart.Aggregate(
+	_, err := v.ColChart.Aggregate(
 		context.Background(),
 		v.BsonForChartByIntervals(t),
 	)
@@ -91,7 +91,7 @@ func (v *VaultDB) SaveChartByIntervals(t *vault.Chart) error {
 }
 
 func (v *VaultDB) SaveChartWithVolumeByIntervals(chart *vault.Chart, interval int64) error {
-	_, err := v.colChart.Aggregate(
+	_, err := v.ColChart.Aggregate(
 		context.Background(),
 		v.BsonForChartWithVolumeByIntervals(chart),
 	)
@@ -111,11 +111,11 @@ func (v *VaultDB) SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.Cha
 	*models = append(*models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
 }
 
-func (v *VaultDB) SaveVaultChartSub(t *vault.ChartSub) error {
+func (v *VaultDB) SaveChartSub(t *vault.ChartSub) error {
 	filter, update := v.BsonForChartSub(t)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := v.colChartSub.FindOneAndUpdate(
+	err := v.ColChartSub.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -130,7 +130,7 @@ func (v *VaultDB) SaveVaultChartSub(t *vault.ChartSub) error {
 	return nil
 }
 
-func (v *VaultDB) GetChart(chainId, address *string, interval *int64) ([]*vault.Chart, error) {
+func (v *VaultDB) GetChart(chainId, address *string, interval *int64) []*vault.Chart {
 	filter := bson.M{
 		"chainId":  chainId,
 		"address":  strings.ToLower(*address),
@@ -138,10 +138,10 @@ func (v *VaultDB) GetChart(chainId, address *string, interval *int64) ([]*vault.
 	}
 
 	var chart []*vault.Chart
-	cursor, err := v.colChartSub.Find(context.Background(), filter)
+	cursor, err := v.ColChartSub.Find(context.Background(), filter)
 
 	if err != nil {
-		return chart, err
+		return chart
 	}
 	defer cursor.Close(context.Background())
 
@@ -152,7 +152,7 @@ func (v *VaultDB) GetChart(chainId, address *string, interval *int64) ([]*vault.
 		}
 	}
 
-	return chart, nil
+	return chart
 }
 
 func (v *VaultDB) GetChartLast(chainId, address *string, interval *int64) *vault.Chart {
@@ -164,7 +164,7 @@ func (v *VaultDB) GetChartLast(chainId, address *string, interval *int64) *vault
 		"interval": interval,
 	}
 
-	err := v.colChart.FindOne(
+	err := v.ColChart.FindOne(
 		context.Background(),
 		filter,
 		options.FindOne().SetSort(bson.D{{"time", -1}}),
@@ -183,7 +183,7 @@ func (v *VaultDB) GetChartSub(chainId, address *string) ([]*vault.ChartSub, erro
 	}
 
 	var chart []*vault.ChartSub
-	cursor, err := v.colChartSub.Find(context.Background(), filter)
+	cursor, err := v.ColChartSub.Find(context.Background(), filter)
 
 	if err != nil {
 		return chart, err
@@ -216,7 +216,7 @@ func (v *VaultDB) GetChartSubAtTime(chainId, address *string, time *int64) (char
 		{{"$limit", 1}},
 	}
 
-	cursor, err := v.colChartSub.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColChartSub.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("ModelVaultDB",
 			zap.String("GetChartSubAtTime Cursor", ""),
@@ -243,7 +243,7 @@ func (v *VaultDB) GetChartSubLast(chainId, address *string) (chartSub *vault.Cha
 		"address": strings.ToLower(*address),
 	}
 
-	err := v.colChartSub.FindOne(
+	err := v.ColChartSub.FindOne(
 		context.Background(),
 		filter,
 		options.FindOne().SetSort(bson.D{{"time", -1}}),
@@ -255,7 +255,7 @@ func (v *VaultDB) GetChartSubLast(chainId, address *string) (chartSub *vault.Cha
 	return chartSub
 }
 
-func (v *VaultDB) SaveVaultChartVolume(chart *vault.Chart, interval int64) error {
+func (v *VaultDB) SaveChartVolume(chart *vault.Chart, interval int64) error {
 	last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
 	if last != nil && last.Time == chart.Time {
 		chart.Open = last.Close
@@ -264,22 +264,22 @@ func (v *VaultDB) SaveVaultChartVolume(chart *vault.Chart, interval int64) error
 	filter, update := v.BsonForVaultChartVolume(chart, &interval)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := v.colChart.FindOneAndUpdate(
+	err := v.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
 		option,
 	).Decode(chart)
 	if err != nil {
-		commonlog.Logger.Error("SaveVaultChart",
+		commonlog.Logger.Error("SaveChart",
 			zap.String("FindOneAndUpdate1", err.Error()),
 		)
 	}
 	return nil
 }
 
-func (v *VaultDB) SaveVaultChartVolumesByIntervals(chart *vault.Chart) error {
-	_, err := v.colChart.Aggregate(
+func (v *VaultDB) SaveChartVolumesByIntervals(chart *vault.Chart) error {
+	_, err := v.ColChart.Aggregate(
 		context.Background(),
 		v.BsonForVaultChartVolumesByIntervals(chart),
 	)
@@ -297,7 +297,7 @@ func (v *VaultDB) SaveVaultChartVolumesByIntervals(chart *vault.Chart) error {
 func (v *VaultDB) GetVaultChartSubAtTime(t *vault.ChartSub) error {
 	pipeline := v.BsonForVaultChartSubAtTime(t)
 
-	cursor, err := v.colChartSub.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColChartSub.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error(
 			"GetVaultChartSubAtTime",
@@ -320,7 +320,7 @@ func (v *VaultDB) GetVaultChartSubAtTime(t *vault.ChartSub) error {
 
 func (v *VaultDB) GetVaultChartSubsAtTime(time *int64, chainId *string, addresses []string) map[string]*vault.ChartSub {
 	pipeline := v.BsonForVaultChartSubsAtTime(time, *chainId, addresses)
-	cursor, err := v.colChartSub.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColChartSub.Aggregate(context.Background(), pipeline)
 
 	if err != nil {
 		commonlog.Logger.Error(

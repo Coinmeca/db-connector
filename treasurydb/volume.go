@@ -16,7 +16,7 @@ func (t *TreasuryDB) SaveTradingVolume(chart *treasury.Chart) error {
 	filter, update := t.BsonForTradingVolume(chart)
 	option := options.Update().SetUpsert(true)
 
-	_, err := t.colChart.UpdateOne(context.Background(), filter, update, option)
+	_, err := t.ColChart.UpdateOne(context.Background(), filter, update, option)
 	if err != nil {
 		commonlog.Logger.Error("Treasury SaveTradingVolume",
 			zap.String("Failed to update chart", err.Error()),
@@ -42,7 +42,7 @@ func (c *TreasuryDB) UpdateTradingVolume(chainId string, volume *primitive.Decim
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	var updatedDoc treasury.Chart
-	err := c.colChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedDoc)
+	err := c.ColChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedDoc)
 	if err != nil {
 		commonlog.Logger.Error("UpdateTradingVolume", zap.String("Failed to update tv value", err.Error()))
 		return err

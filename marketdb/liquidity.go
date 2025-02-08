@@ -14,7 +14,7 @@ func (m *MarketDB) SaveMarketLiquidity(chainId, address *string, liquidity *[]*m
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
 	market := &market.Market{}
-	err := m.colMarket.FindOneAndUpdate(
+	err := m.ColMarket.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,

@@ -19,7 +19,7 @@ func (a *AccountDB) UpdateAccountOrder(
 	filter, update := a.BsonForUpdateAccountOrder(tradeType, chainId, user, asset, amount, count)
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	err := a.colAssets.FindOneAndUpdate(
+	err := a.ColAssets.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -44,7 +44,7 @@ func (a *AccountDB) UpdateAccountAssetUse(
 	filter, update := a.BsonForUpdateAccountAssetUse(tradeType, chainId, user, asset, amount, count)
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	err := a.colAssets.FindOneAndUpdate(
+	err := a.ColAssets.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,

@@ -13,7 +13,7 @@ func (f *FarmDB) SaveFarmRecent(recent *farm.Recent) error {
 	filter, update := f.BsonForFarmRecent(recent)
 	option := options.Update().SetUpsert(true)
 
-	_, err := f.colHistory.UpdateOne(
+	_, err := f.ColHistory.UpdateOne(
 		context.Background(),
 		filter,
 		update,

@@ -33,7 +33,7 @@ func (m *MarketDB) GetLastAll(time *int64, last *market.Last) {
 		}}},
 	}
 
-	cursor, err := m.colChart.Aggregate(context.Background(), pipeline)
+	cursor, err := m.ColChart.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetLastAll",
 			zap.String("Load Error", err.Error()),
@@ -80,7 +80,7 @@ func (m *MarketDB) GetLastAll(time *int64, last *market.Last) {
 		{{"$limit", 1}},
 	}
 
-	cursor, err = m.colChart.Aggregate(context.Background(), pipeline)
+	cursor, err = m.ColChart.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetLastAll",
 			zap.String("Load Error 24hago ", err.Error()),
@@ -114,7 +114,7 @@ func (e *MarketDB) GetVolume24h(chainId, address *string) (*primitive.Decimal128
 		}}},
 		{{"$sort", bson.M{"time": 1}}},
 	}
-	cursor, err := e.colHistory.Aggregate(context.Background(), pipeline)
+	cursor, err := e.ColHistory.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetVolume24h",
 			zap.String("Load Error", err.Error()),
@@ -157,7 +157,7 @@ func (e *MarketDB) GetHighAndLow24h(chainId, address *string) (*primitive.Decima
 			{"low", bson.D{{"$min", "$low"}}},
 		}}},
 	}
-	cursor, err := e.colChart.Aggregate(context.Background(), pipeline)
+	cursor, err := e.ColChart.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetHighAndLow24h",
 			zap.String("Load Error", err.Error()),
@@ -202,7 +202,7 @@ func (e *MarketDB) GetPrice24hAgo(chainId, address *string) (*primitive.Decimal1
 		{{"$limit", 1}},
 	}
 
-	cursor, err := e.colChart.Aggregate(context.Background(), pipeline)
+	cursor, err := e.ColChart.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}

@@ -21,8 +21,9 @@ type ContractDB struct {
 	conf *conf.Config
 
 	client      *mongo.Client
-	colContract *mongo.Collection
-	colChain    *mongo.Collection
+	ColContract *mongo.Collection
+	ColChain    *mongo.Collection
+	ColChainInfo *mongo.Collection
 
 	key          *key.KeyManager
 	ethRepo      map[string]*commonrepository.EthRepository
@@ -76,8 +77,8 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 	// 수정된 부분: client.Ping 호출이 성공했을 때 컬렉션 초기화
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["contractDB"]["db"].(string))
-		r.colContract = db.Collection("contract")
-		r.colChain = db.Collection("chain")
+		r.ColContract = db.Collection("contract")
+		r.ColChain = db.Collection("chain")
 	} else {
 		return nil, err
 	}

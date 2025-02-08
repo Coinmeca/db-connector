@@ -19,7 +19,7 @@ func (f *FarmDB) GetStaking24h(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (primitive.Decimal128, error) {
-		cursor, err := f.colHistory.Aggregate(ctx, pipeline)
+		cursor, err := f.ColHistory.Aggregate(ctx, pipeline)
 		if err != nil {
 			return primitive.Decimal128{}, err
 		}
@@ -97,7 +97,7 @@ func (f *FarmDB) GetStaking24hBackup(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colHistory.Aggregate(ctx, pipeline)
+		cursor, err := f.ColHistory.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func (f *FarmDB) GetInterest24h(nowTime *int64, last *farm.Last) {
 	}
 
 	executePipeline := func(pipeline mongo.Pipeline) (primitive.Decimal128, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return primitive.Decimal128{}, err
 		}
@@ -298,7 +298,7 @@ func (f *FarmDB) GetInterest24hBackup(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -370,7 +370,7 @@ func (f *FarmDB) GetStakedWithValue(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -454,7 +454,7 @@ func (f *FarmDB) GetStakedWithValue(nowTime *int64, last *farm.Last) {
 //	ctx := context.Background()
 //
 //	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-//		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+//		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 //		if err != nil {
 //			return nil, err
 //		}
@@ -519,7 +519,7 @@ func (f *FarmDB) GetStakedWithValueBackup2(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -609,7 +609,7 @@ func (f *FarmDB) GetStakedWithValueBackup(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -691,7 +691,7 @@ func (f *FarmDB) GetTotalInterest(nowTime *int64, last *farm.Last) {
 	ctx := context.Background()
 
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := f.colChart.Aggregate(ctx, pipeline)
+		cursor, err := f.ColChart.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}

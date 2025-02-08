@@ -21,7 +21,7 @@ func (v *VaultDB) GetLastAll(nowTime *int64, last *vault.Last) error {
 
 	ctx := context.Background()
 	executePipeline := func(pipeline mongo.Pipeline) (bson.M, error) {
-		cursor, err := v.colHistory.Aggregate(ctx, pipeline)
+		cursor, err := v.ColHistory.Aggregate(ctx, pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +190,7 @@ func (v *VaultDB) GetLastAll(nowTime *int64, last *vault.Last) error {
 		}},
 	}
 
-	cursor, err := v.colChartSub.Aggregate(ctx, pipeline)
+	cursor, err := v.ColChartSub.Aggregate(ctx, pipeline)
 	if err != nil {
 		commonlog.Logger.Error("VaultLast",
 			zap.String("GetVault valueLocked", err.Error()),
@@ -221,7 +221,7 @@ func (v *VaultDB) GetLastAll(nowTime *int64, last *vault.Last) error {
 		{{"$limit", 1}},
 	}
 
-	cursor, err = v.colChart.Aggregate(ctx, pipeline)
+	cursor, err = v.ColChart.Aggregate(ctx, pipeline)
 	if err != nil {
 		commonlog.Logger.Error("VaultLast",
 			zap.String("Aggregate Error:", err.Error()),
@@ -258,7 +258,7 @@ func (v *VaultDB) GetDeposit24h(chainId, address *string) (*primitive.Decimal128
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colHistory.Aggregate(ctx, pipeline)
+	cursor, err := v.ColHistory.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (v *VaultDB) GetWithdraw24h(chainId, address *string) (*primitive.Decimal12
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colHistory.Aggregate(ctx, pipeline)
+	cursor, err := v.ColHistory.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +328,7 @@ func (v *VaultDB) GetMint24h(chainId, address *string) (*primitive.Decimal128, e
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colHistory.Aggregate(ctx, pipeline)
+	cursor, err := v.ColHistory.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +363,7 @@ func (v *VaultDB) GetBurn24h(chainId, address *string) (*primitive.Decimal128, e
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colHistory.Aggregate(ctx, pipeline)
+	cursor, err := v.ColHistory.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -401,7 +401,7 @@ func (v *VaultDB) GetRate24hAgo(chainId, address *string) (*primitive.Decimal128
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colChart.Aggregate(ctx, pipeline)
+	cursor, err := v.ColChart.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (v *VaultDB) GetLocked24hAgo(chainId, address *string) (*primitive.Decimal1
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colChartSub.Aggregate(ctx, pipeline)
+	cursor, err := v.ColChartSub.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (v *VaultDB) GetWeight24hAgo(chainId, address *string) (*primitive.Decimal1
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colChartSub.Aggregate(ctx, pipeline)
+	cursor, err := v.ColChartSub.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +513,7 @@ func (v *VaultDB) GetVauleLocked24hAgo(chainId, address *string) (*primitive.Dec
 	}
 
 	ctx := context.Background()
-	cursor, err := v.colChartSub.Aggregate(ctx, pipeline)
+	cursor, err := v.ColChartSub.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}

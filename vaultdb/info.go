@@ -14,7 +14,7 @@ import (
 )
 
 func (v *VaultDB) BulkWriteInfo(models []mongo.WriteModel) error {
-	result, err := v.colVault.BulkWrite(context.Background(), models)
+	result, err := v.ColVault.BulkWrite(context.Background(), models)
 	if err != nil {
 		commonlog.Logger.Error("VaultDB",
 			zap.String("BulkWriteInfo", err.Error()),
@@ -36,7 +36,7 @@ func (v *VaultDB) SaveVaultInfo(info *vault.Vault) error {
 	filter, update := v.BsonForInfo(info)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := v.colVault.FindOneAndUpdate(
+	err := v.ColVault.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -55,7 +55,7 @@ func (v *VaultDB) SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vaul
 	filter, update := v.BsonForVaultWeight(recent)
 	option := options.FindOneAndUpdate().SetUpsert(true)
 
-	err := v.colVault.FindOneAndUpdate(
+	err := v.ColVault.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -74,7 +74,7 @@ func (v *VaultDB) SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vaul
 func (v *VaultDB) GetVault(chainId, address *string) (*vault.Vault, error) {
 	var vault vault.Vault
 	filter := bson.M{"chainId": chainId, "address": strings.ToLower(*address)}
-	if err := v.colVault.FindOne(context.Background(), filter, nil).Decode(&vault); err != nil {
+	if err := v.ColVault.FindOne(context.Background(), filter, nil).Decode(&vault); err != nil {
 		commonlog.Logger.Error("GetVaults",
 			zap.String("not found ", err.Error()),
 		)
@@ -86,7 +86,7 @@ func (v *VaultDB) GetVault(chainId, address *string) (*vault.Vault, error) {
 func (v *VaultDB) GetVaults(chainId *string) ([]*vault.Vault, error) {
 	var vaults []*vault.Vault
 	filter := bson.M{"chainId": chainId}
-	cursor, err := v.colVault.Find(context.Background(), filter)
+	cursor, err := v.ColVault.Find(context.Background(), filter)
 
 	if err != nil {
 		commonlog.Logger.Error("GetVaults",
@@ -108,7 +108,7 @@ func (v *VaultDB) GetVaults(chainId *string) ([]*vault.Vault, error) {
 
 func (v *VaultDB) GetAllVaults() ([]*vault.Vault, error) {
 	var vaults []*vault.Vault
-	cursor, err := v.colVault.Find(context.Background(), bson.M{})
+	cursor, err := v.ColVault.Find(context.Background(), bson.M{})
 
 	if err != nil {
 		return vaults, err
@@ -128,7 +128,7 @@ func (v *VaultDB) GetAllVaults() ([]*vault.Vault, error) {
 func (v *VaultDB) GetKeyTokens(chainId *string) ([]*vault.Vault, error) {
 	var keys []*vault.Vault
 	filter := bson.M{"chainId": chainId, "key": true}
-	cursor, err := v.colVault.Find(context.Background(), filter)
+	cursor, err := v.ColVault.Find(context.Background(), filter)
 	if err != nil {
 		commonlog.Logger.Error("GetKeyTokens",
 			zap.String("GetKeyTokens ", err.Error()),
@@ -162,7 +162,7 @@ func (v *VaultDB) GetAllKeyTokenSymbols() ([]*vault.Vault, error) {
 		}}},
 	}
 
-	cursor, err := v.colVault.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColVault.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetAllKeyTokenSymbols",
 			zap.String("GetAllKeyTokenSymbols ", err.Error()),
@@ -190,7 +190,7 @@ func (v *VaultDB) GetKeyTokenSymbols(chainId *string) ([]*vault.Vault, error) {
 		{{"$group", bson.D{{"symbol", "$symbol"}, {"address", "$address"}}}},
 	}
 
-	cursor, err := v.colVault.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColVault.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("GetKeyTokenSymbols",
 			zap.String("GetKeyTokenSymbols ", err.Error()),
@@ -217,7 +217,7 @@ func (v *VaultDB) GetKeyTokenSymbols(chainId *string) ([]*vault.Vault, error) {
 // 		{{"$group", bson.D{{"symbol", "$symbol"}, {"chainId", "$chainId"}, {"address", "$address"}}}},
 // 	}
 
-// 	cursor, err := v.colVault.Aggregate(context.Background(), pipeline)
+// 	cursor, err := v.ColVault.Aggregate(context.Background(), pipeline)
 // 	if err != nil {
 // 		return nil, err
 // 	}
@@ -248,7 +248,7 @@ func (v *VaultDB) GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
 		{{"$group", bson.D{{"symbol", "$symbol"}, {"address", "$address"}}}},
 	}
 
-	cursor, err := v.colVault.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColVault.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,7 @@ func (v *VaultDB) GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
 
 // Check if the document exists
 // existingVault := vault.Vault{}
-// err := v.colHistory.FindOne(context.Background(), filter).Decode(&existingVault)
+// err := v.ColHistory.FindOne(context.Background(), filter).Decode(&existingVault)
 // if err != nil && err != mongo.ErrNoDocuments {
 // 	commonlog.Logger.Error("SaveVaultMintAndBurn - FindOne",
 // 		zap.String("FindOne error", err.Error()),
@@ -290,7 +290,7 @@ func (v *VaultDB) GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
 // 			"burn": primitive.NewDecimal128(0, 0),
 // 		},
 // 	}
-// 	_, err := v.colHistory.UpdateOne(context.Background(), filter, initialUpdate, options.Update().SetUpsert(true))
+// 	_, err := v.ColHistory.UpdateOne(context.Background(), filter, initialUpdate, options.Update().SetUpsert(true))
 // 	if err != nil {
 // 		commonlog.Logger.Error("SaveVaultMintAndBurn - Initial UpdateOne",
 // 			zap.String("UpdateOne error", err.Error()),

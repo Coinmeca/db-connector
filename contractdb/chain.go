@@ -7,11 +7,12 @@ import (
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
 func (c *ContractDB) GetChains() []*commondatabase.Chain {
-	cursor, err := c.colChain.Find(context.Background(), bson.M{})
+	cursor, err := c.ColChain.Find(context.Background(), bson.M{})
 	if err != nil {
 		commonlog.Logger.Error("GetChains",
 			zap.String("Cannot decode", err.Error()),
@@ -69,4 +70,16 @@ func (c *ContractDB) GetTargetChains() []string {
 	c.chains = chains
 	c.chainsUpdate = now
 	return chains
+}
+
+func (c *ContractDB) GetChainInfos(result *[]commondatabase.Chain) error {
+	filter := bson.M{}
+	findOptions := options.Find().SetSort(bson.M{"_id": 1})
+	if cursor, err := c.ColChainInfo.Find(context.Background(), filter, findOptions); err != nil {
+		return err
+	} else {
+		defer cursor.Close(context.Background())
+		cursor.All(context.Background(), result)
+		return nil
+	}
 }

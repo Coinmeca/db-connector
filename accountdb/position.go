@@ -20,7 +20,7 @@ func (a *AccountDB) GetAccountPosition(chainId, user, pay, item *string) *accoun
 	filter, projection := a.BsonForGetAccountPosition(chainId, user, pay, item)
 
 	option := options.FindOne().SetProjection(projection)
-	err := a.colAssets.FindOne(
+	err := a.ColAssets.FindOne(
 		context.Background(),
 		filter,
 		option,
@@ -49,7 +49,7 @@ func (a *AccountDB) GetAccountPositions(chainId, user, asset *string) *[]account
 	filter, projection := a.BsonForGetAccountPositions(chainId, user, asset)
 
 	option := options.FindOne().SetProjection(projection)
-	err := a.colAssets.FindOne(
+	err := a.ColAssets.FindOne(
 		context.Background(),
 		filter,
 		option,
@@ -74,7 +74,7 @@ func (a *AccountDB) GetAccountAssetByPosition(chainId, user, pay, item *string) 
 	filter, projection := a.BsonForGetAccountPosition(chainId, user, pay, item)
 
 	option := options.FindOne().SetProjection(projection)
-	err := a.colAssets.FindOne(
+	err := a.ColAssets.FindOne(
 		context.Background(),
 		filter,
 		option,
@@ -123,7 +123,7 @@ func (a *AccountDB) UpdateAccountPosition(
 	}
 
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-	err := a.colAssets.FindOneAndUpdate(
+	err := a.ColAssets.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,

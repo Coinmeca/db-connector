@@ -19,9 +19,9 @@ type FarmDB struct {
 	config *conf.Config
 
 	client     *mongo.Client
-	colFarm    *mongo.Collection
-	colChart   *mongo.Collection
-	colHistory *mongo.Collection
+	ColFarm    *mongo.Collection
+	ColChart   *mongo.Collection
+	ColHistory *mongo.Collection
 
 	start chan struct{}
 }
@@ -75,22 +75,22 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["farmDB"]["db"].(string))
-		r.colFarm = db.Collection("farm")
-		r.colChart = db.Collection("chart")
-		r.colHistory = db.Collection("history")
+		r.ColFarm = db.Collection("farm")
+		r.ColChart = db.Collection("chart")
+		r.ColHistory = db.Collection("history")
 	} else {
 		return nil, err
 	}
 
-	if err := farmIndex(r.colFarm); err != nil {
+	if err := farmIndex(r.ColFarm); err != nil {
 		return nil, err
 	}
 
-	if err := chartIndex(r.colChart); err != nil {
+	if err := chartIndex(r.ColChart); err != nil {
 		return nil, err
 	}
 
-	if err := historyIndex(r.colHistory); err != nil {
+	if err := historyIndex(r.ColHistory); err != nil {
 		return nil, err
 	}
 

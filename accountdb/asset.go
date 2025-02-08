@@ -21,7 +21,7 @@ func (a *AccountDB) GetAccountAsset(chainId, user, asset *string) *account.Asset
 		"address": *asset,
 	}
 
-	err := a.colAssets.FindOne(
+	err := a.ColAssets.FindOne(
 		context.Background(),
 		filter,
 	).Decode(result)
@@ -39,7 +39,7 @@ func (a *AccountDB) GetAccountAssets(chainId, user *string, assets *[]*string) [
 	filter := a.BsonForGetAccountAssets(*chainId, *user, assets)
 
 	var result []*account.Asset
-	cursor, err := a.colAssets.Find(context.Background(), filter)
+	cursor, err := a.ColAssets.Find(context.Background(), filter)
 	if err != nil {
 		commonlog.Logger.Error("GetAccountAssets",
 			zap.String("Find", err.Error()),
@@ -93,7 +93,7 @@ func (a *AccountDB) UpdateAccountAssets(chainId, user string, assets *[]account.
 
 	// BulkUpdate
 	models := a.BsonForUpdateAccountAssets(chainId, user, assetlist)
-	_, err := a.colAssets.BulkWrite(context.Background(), *models)
+	_, err := a.ColAssets.BulkWrite(context.Background(), *models)
 	if err != nil {
 		commonlog.Logger.Error("UpdateAccountAssets",
 			zap.String("GetAccountAssets", err.Error()),
@@ -123,7 +123,7 @@ func (a *AccountDB) UpdateAccountAsset(
 	// return nil / err 로 업데이트 성공 / 실패 여부만 열려주면 될듯함
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	err := a.colAssets.FindOneAndUpdate(
+	err := a.ColAssets.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,

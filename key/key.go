@@ -19,10 +19,10 @@ type KeyManager struct {
 
 	client     *mongo.Client
 	db         *mongo.Database
-	collection map[string]*mongo.Collection
+	Collection map[string]*mongo.Collection
 
 	start   chan struct{}
-	current map[string]*commondatabase.APIKey
+	Current map[string]*commondatabase.APIKey
 }
 
 // NewKeyManager returns KeyManager as IRepository
@@ -49,8 +49,8 @@ func NewKeyManager(config *conf.Config) (*KeyManager, error) {
 		return nil, err
 	}
 
-	r.collection = make(map[string]*mongo.Collection)
-	r.current = make(map[string]*commondatabase.APIKey)
+	r.Collection = make(map[string]*mongo.Collection)
+	r.Current = make(map[string]*commondatabase.APIKey)
 
 	commonlog.Logger.Debug("load repository",
 		zap.String("keyDB", r.config.Common.ServiceId),
@@ -155,7 +155,7 @@ func (k *KeyManager) SetKey(cate, chainId, key string) error {
 		zap.String("key:", current.Key),
 	)
 
-	k.current[cate] = current
+	k.Current[cate] = current
 
 	return nil
 }
@@ -284,7 +284,7 @@ func (k *KeyManager) GetNewKeys(cate, chainId string) ([]*commondatabase.APIKey,
 }
 
 func (k *KeyManager) GetCurrentKey(cate, chainId string) *commondatabase.APIKey {
-	current, ok := k.current[cate]
+	current, ok := k.Current[cate]
 	if !ok {
 		init, err := k.InitKey(cate, chainId)
 		if err != nil {
@@ -309,10 +309,10 @@ func (k *KeyManager) col(cate, chainId string) *mongo.Collection {
 		return nil
 	}
 
-	col, ok := k.collection[cate]
+	col, ok := k.Collection[cate]
 	if !ok {
-		k.collection[cate] = k.db.Collection(cate)
-		col = k.collection[cate]
+		k.Collection[cate] = k.db.Collection(cate)
+		col = k.Collection[cate]
 	}
 	return col
 }

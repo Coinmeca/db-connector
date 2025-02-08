@@ -18,7 +18,7 @@ func (t *TreasuryDB) SaveTreasuryChart(chart *treasury.Chart) error {
 	filter, update := t.BsonForChart(chart)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := t.colChart.FindOneAndUpdate(
+	err := t.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -36,7 +36,7 @@ func (t *TreasuryDB) UpsertDailyChart(chart *treasury.Chart) error {
 	filter, update := t.BsonForChart(chart)
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	err := t.colChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(chart)
+	err := t.ColChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(chart)
 	if err != nil {
 		commonlog.Logger.Error("UpsertDailyChart", zap.String("Failed to update or insert chart", err.Error()))
 		return err
@@ -44,16 +44,16 @@ func (t *TreasuryDB) UpsertDailyChart(chart *treasury.Chart) error {
 	return nil
 }
 
-func (t *TreasuryDB) GetTreasuryChart(chainId *string) ([]*treasury.Chart, error) {
+func (t *TreasuryDB) GetTreasuryChart(chainId *string) []*treasury.Chart {
 	filter := bson.M{
 		"chainId": chainId,
 	}
 
 	var chart []*treasury.Chart
-	cursor, err := t.colChart.Find(context.Background(), filter)
+	cursor, err := t.ColChart.Find(context.Background(), filter)
 
 	if err != nil {
-		return chart, err
+		return nil
 	}
 	defer cursor.Close(context.Background())
 
@@ -64,7 +64,7 @@ func (t *TreasuryDB) GetTreasuryChart(chainId *string) ([]*treasury.Chart, error
 		}
 	}
 
-	return chart, nil
+	return chart
 }
 
 func (t *TreasuryDB) GetTreasuryChartLast(chainId *string) (*treasury.Last, error) {
@@ -75,7 +75,7 @@ func (t *TreasuryDB) GetTreasuryChartLast(chainId *string) (*treasury.Last, erro
 		"time":    now,
 	}
 	var chart *treasury.Chart
-	err := t.colChart.FindOne(context.Background(), filter).Decode(&chart)
+	err := t.ColChart.FindOne(context.Background(), filter).Decode(&chart)
 	if err != nil {
 		commonlog.Logger.Error("SaveTreasuryChart",
 			zap.String("Failed to update chart", err.Error()),
@@ -97,7 +97,7 @@ func (t *TreasuryDB) GetLatestTVValue(chainId string) (primitive.Decimal128, err
 	}
 	filter := bson.M{"chainId": chainId}
 	opts := options.FindOne().SetSort(bson.D{{"time", -1}})
-	err := t.colChart.FindOne(context.Background(), filter, opts).Decode(&result)
+	err := t.ColChart.FindOne(context.Background(), filter, opts).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return primitive.NewDecimal128(0, 0), nil

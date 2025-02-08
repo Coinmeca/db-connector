@@ -54,6 +54,9 @@ type Config struct {
 			Verbosity int
 			FileName  string
 		}
+		Block map[string]struct {
+			StartBlock int
+		}
 	}
 
 	CoinMarketCapAPI struct {

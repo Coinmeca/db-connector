@@ -20,9 +20,9 @@ type MarketDB struct {
 	config *conf.Config
 
 	client     *mongo.Client
-	colMarket  *mongo.Collection
-	colChart   *mongo.Collection
-	colHistory *mongo.Collection
+	ColMarket  *mongo.Collection
+	ColChart   *mongo.Collection
+	ColHistory *mongo.Collection
 
 	start chan struct{}
 }
@@ -64,10 +64,10 @@ type MarketDBInterface interface {
 	GetVolume24h(chainId *string, address *string) (*primitive.Decimal128, *primitive.Decimal128, error)
 
 	// setter
-	SaveMarketChart(chart *market.Chart, interval int64) error
-	SaveMarketChartByIntervals(chart *market.Chart) error
-	SaveMarketChartVolume(chart *market.Chart, interval int64) error
-	SaveMarketChartVolumesByIntervals(chart *market.Chart) error
+	SaveChart(chart *market.Chart, interval int64) error
+	SaveChartByIntervals(chart *market.Chart) error
+	SaveChartVolume(chart *market.Chart, interval int64) error
+	SaveChartVolumesByIntervals(chart *market.Chart) error
 	SaveMarketInfo(info *market.Market) error
 	SaveMarketInfoFromModel(models *[]mongo.WriteModel, info *market.Market)
 	SaveMarketLiquidity(chainId *string, address *string, liquidity *[]*market.MarketLiquidity) error
@@ -96,22 +96,22 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["marketDB"]["db"].(string))
-		r.colMarket = db.Collection("market")
-		r.colChart = db.Collection("chart")
-		r.colHistory = db.Collection("history")
+		r.ColMarket = db.Collection("market")
+		r.ColChart = db.Collection("chart")
+		r.ColHistory = db.Collection("history")
 	} else {
 		return nil, err
 	}
 
-	if err := marketIndex(r.colMarket); err != nil {
+	if err := marketIndex(r.ColMarket); err != nil {
 		return nil, err
 	}
 
-	if err := chartIndex(r.colChart); err != nil {
+	if err := chartIndex(r.ColChart); err != nil {
 		return nil, err
 	}
 
-	if err := historyIndex(r.colHistory); err != nil {
+	if err := historyIndex(r.ColHistory); err != nil {
 		return nil, err
 	}
 

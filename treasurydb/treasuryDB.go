@@ -19,9 +19,9 @@ type TreasuryDB struct {
 	config *conf.Config
 
 	client      *mongo.Client
-	colTreasury *mongo.Collection
-	colChart    *mongo.Collection
-	colToken    *mongo.Collection
+	ColTreasury *mongo.Collection
+	ColChart    *mongo.Collection
+	ColToken    *mongo.Collection
 
 	start chan struct{}
 }
@@ -77,18 +77,18 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["treasuryDB"]["db"].(string))
-		r.colTreasury = db.Collection("treasury")
-		r.colToken = db.Collection("token")
-		r.colChart = db.Collection("chart")
+		r.ColTreasury = db.Collection("treasury")
+		r.ColToken = db.Collection("token")
+		r.ColChart = db.Collection("chart")
 	} else {
 		return nil, err
 	}
 
-	if err := tokenIndex(r.colToken); err != nil {
+	if err := tokenIndex(r.ColToken); err != nil {
 		return nil, err
 	}
 
-	if err := chartIndex(r.colChart); err != nil {
+	if err := chartIndex(r.ColChart); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func (t *TreasuryDB) GetLatestChart(chainId string) (*treasury.Chart, error) {
 	filter := bson.M{"chainId": chainId}
 	opts := options.FindOne().SetSort(bson.D{{"time", -1}})
 
-	err := t.colChart.FindOne(context.Background(), filter, opts).Decode(&latestChart)
+	err := t.ColChart.FindOne(context.Background(), filter, opts).Decode(&latestChart)
 	if err != nil {
 		return nil, err
 	}

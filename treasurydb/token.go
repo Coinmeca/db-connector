@@ -13,7 +13,7 @@ import (
 )
 
 func (t *TreasuryDB) BulkWriteTokens(models *[]mongo.WriteModel) error {
-	result, err := t.colToken.BulkWrite(context.Background(), *models)
+	result, err := t.ColToken.BulkWrite(context.Background(), *models)
 	if err != nil {
 		commonlog.Logger.Error("TreasuryDB",
 			zap.String("BulkWriteTokens", err.Error()),
@@ -28,7 +28,7 @@ func (t *TreasuryDB) SetValue(symbol, name string, value *primitive.Decimal128) 
 	filter, update := t.BsonForSetValue(symbol, name, value)
 	opts := options.Update().SetUpsert(false)
 
-	_, err := t.colToken.UpdateOne(context.Background(), filter, update, opts)
+	_, err := t.ColToken.UpdateOne(context.Background(), filter, update, opts)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (t *TreasuryDB) GetValue(name, symbol *string) (*primitive.Decimal128, erro
 	}
 
 	value := &primitive.Decimal128{}
-	err := t.colToken.FindOne(context.Background(), filter).Decode(&value)
+	err := t.ColToken.FindOne(context.Background(), filter).Decode(&value)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (t *TreasuryDB) GetValue(name, symbol *string) (*primitive.Decimal128, erro
 }
 
 func (t *TreasuryDB) GetValues() (*map[string]primitive.Decimal128, error) {
-	cursor, err := t.colToken.Find(context.Background(), bson.M{})
+	cursor, err := t.ColToken.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (t *TreasuryDB) GetTokens() ([]*bson.M, error) {
 		}}},
 	}
 
-	cursor, err := t.colToken.Aggregate(context.Background(), pipeline)
+	cursor, err := t.ColToken.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error("TreasuryDB",
 			zap.String("GetTokens ", err.Error()),

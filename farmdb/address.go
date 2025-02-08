@@ -18,7 +18,7 @@ func (f *FarmDB) GetAllFarmAddresses() ([]*commonprotocol.Contract, error) {
 		"main":    1,
 		"name":    1,
 	})
-	cursor, err := f.colFarm.Find(context.Background(), bson.M{}, option)
+	cursor, err := f.ColFarm.Find(context.Background(), bson.M{}, option)
 
 	if err != nil {
 		return farms, err

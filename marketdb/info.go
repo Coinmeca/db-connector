@@ -16,7 +16,7 @@ import (
 )
 
 func (m *MarketDB) BulkWriteInfo(models []mongo.WriteModel) error {
-	result, err := m.colMarket.BulkWrite(context.Background(), models)
+	result, err := m.ColMarket.BulkWrite(context.Background(), models)
 	if err != nil {
 		commonlog.Logger.Error("MarketDB",
 			zap.String("BulkWriteInfo", err.Error()),
@@ -36,7 +36,7 @@ func (m *MarketDB) SaveMarketInfo(info *market.Market) error {
 	filter, update := m.BsonForInfo(info)
 	option := options.Update().SetUpsert(true)
 
-	_, err := m.colMarket.UpdateOne(
+	_, err := m.ColMarket.UpdateOne(
 		context.Background(),
 		filter,
 		update,
@@ -88,7 +88,7 @@ func (e *MarketDB) SaveOrderbook(o market.OutputOrderbookResult) error {
 	}
 	opts := options.Update().SetUpsert(true)
 
-	_, err := e.colMarket.UpdateOne(context.Background(), filter, update, opts)
+	_, err := e.ColMarket.UpdateOne(context.Background(), filter, update, opts)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (e *MarketDB) SaveOrderbook(o market.OutputOrderbookResult) error {
 
 func (m *MarketDB) GetMarket(chainId, address *string) (*market.Market, error) {
 	mk := &market.Market{}
-	if err := m.colMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "address": strings.ToLower(*address)}, nil).Decode(mk); err != nil {
+	if err := m.ColMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "address": strings.ToLower(*address)}, nil).Decode(mk); err != nil {
 		commonlog.Logger.Debug("MarketDB",
 			zap.String("GetMarket", err.Error()),
 		)
@@ -109,7 +109,7 @@ func (m *MarketDB) GetMarket(chainId, address *string) (*market.Market, error) {
 
 func (m *MarketDB) GetMarketRoute(chainId *string, base *string, quote *string) (*market.Market, error) {
 	mk := &market.Market{}
-	if err := m.colMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "base": strings.ToLower(*base), "quote": strings.ToLower(*quote)}, nil).Decode(mk); err != nil {
+	if err := m.ColMarket.FindOne(context.Background(), bson.M{"chainId": chainId, "base": strings.ToLower(*base), "quote": strings.ToLower(*quote)}, nil).Decode(mk); err != nil {
 		return nil, err
 	} else {
 		return mk, nil
@@ -118,7 +118,7 @@ func (m *MarketDB) GetMarketRoute(chainId *string, base *string, quote *string) 
 
 func (m *MarketDB) GetMarkets(chainId *string) ([]*market.Market, error) {
 	var markets []*market.Market
-	cursor, err := m.colMarket.Find(context.Background(), bson.M{"chainId": chainId})
+	cursor, err := m.ColMarket.Find(context.Background(), bson.M{"chainId": chainId})
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (m *MarketDB) GetMarkets(chainId *string) ([]*market.Market, error) {
 
 func (m *MarketDB) GetAllMarkets() ([]*market.Market, error) {
 	var markets []*market.Market
-	cursor, err := m.colMarket.Find(context.Background(), bson.M{})
+	cursor, err := m.ColMarket.Find(context.Background(), bson.M{})
 
 	if err != nil {
 		return markets, err

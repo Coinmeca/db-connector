@@ -24,7 +24,7 @@ func (m *MarketDB) GetMarketTicker(chainId, address *string) map[string]string {
 	token := bson.M{}
 	result := make(map[string]string)
 
-	err := m.colMarket.FindOne(context.Background(), filter, options.FindOne().SetProjection(projection)).Decode(&token)
+	err := m.ColMarket.FindOne(context.Background(), filter, options.FindOne().SetProjection(projection)).Decode(&token)
 	if err != nil {
 		commonlog.Logger.Debug("MarketDB",
 			zap.String("GetMarketTicker", err.Error()),
@@ -44,7 +44,7 @@ func (m *MarketDB) GetAllMarketAddresses() ([]*commonprotocol.Contract, error) {
 		"chainId": 1,
 		"address": 1,
 	})
-	cursor, err := m.colMarket.Find(context.Background(), bson.M{}, option)
+	cursor, err := m.ColMarket.Find(context.Background(), bson.M{}, option)
 
 	if err != nil {
 		return markets, err

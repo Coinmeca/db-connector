@@ -16,7 +16,7 @@ type BatchDB struct {
 	config *conf.Config
 
 	client *mongo.Client
-	colJob *mongo.Collection
+	ColJob *mongo.Collection
 
 	start chan struct{}
 }
@@ -40,7 +40,7 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["batchDB"]["db"].(string))
-		r.colJob = db.Collection("job")
+		r.ColJob = db.Collection("job")
 	} else {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (b *BatchDB) Start() error {
 
 func (b *BatchDB) GetBatchTableInfos() ([]commondatabase.BatchInfo, error) {
 	var batchTableInfos []commondatabase.BatchInfo
-	cursor, err := b.colJob.Find(context.Background(), bson.M{})
+	cursor, err := b.ColJob.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}

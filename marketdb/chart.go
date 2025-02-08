@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (m *MarketDB) SaveMarketChart(chart *market.Chart, interval int64) error {
+func (m *MarketDB) SaveChart(chart *market.Chart, interval int64) error {
 	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
 	if last != nil && last.Time == chart.Time {
 		chart.Open = last.Close
@@ -20,7 +20,7 @@ func (m *MarketDB) SaveMarketChart(chart *market.Chart, interval int64) error {
 
 	filter, update := m.BsonForMarketChart(chart, &interval)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
-	err := m.colChart.FindOneAndUpdate(
+	err := m.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -36,8 +36,8 @@ func (m *MarketDB) SaveMarketChart(chart *market.Chart, interval int64) error {
 	return nil
 }
 
-func (m *MarketDB) SaveMarketChartByIntervals(chart *market.Chart) error {
-	_, err := m.colChart.Aggregate(
+func (m *MarketDB) SaveChartByIntervals(chart *market.Chart) error {
+	_, err := m.ColChart.Aggregate(
 		context.Background(),
 		m.BsonForChartByIntervals(chart),
 	)
@@ -60,7 +60,7 @@ func (m *MarketDB) GetChart(chainId, address *string, interval *int64) ([]*marke
 	}
 
 	var chart []*market.Chart
-	cursor, err := m.colChart.Find(context.Background(), filter)
+	cursor, err := m.ColChart.Find(context.Background(), filter)
 
 	if err != nil {
 		return chart, err
@@ -86,7 +86,7 @@ func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *mark
 		"interval": interval,
 	}
 
-	err := m.colChart.FindOne(
+	err := m.ColChart.FindOne(
 		context.Background(),
 		filter,
 		options.FindOne().SetSort(bson.D{{"time", -1}}),
@@ -102,7 +102,7 @@ func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *mark
 	return chart
 }
 
-func (m *MarketDB) SaveMarketChartVolume(chart *market.Chart, interval int64) error {
+func (m *MarketDB) SaveChartVolume(chart *market.Chart, interval int64) error {
 	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
 	if last != nil && last.Time == chart.Time {
 		chart.Open = last.Close
@@ -111,7 +111,7 @@ func (m *MarketDB) SaveMarketChartVolume(chart *market.Chart, interval int64) er
 	filter, update := m.BsonForMarketChartVolume(chart, &interval)
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
-	err := m.colChart.FindOneAndUpdate(
+	err := m.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -126,8 +126,8 @@ func (m *MarketDB) SaveMarketChartVolume(chart *market.Chart, interval int64) er
 	return nil
 }
 
-func (m *MarketDB) SaveMarketChartVolumesByIntervals(chart *market.Chart) error {
-	_, err := m.colChart.Aggregate(
+func (m *MarketDB) SaveChartVolumesByIntervals(chart *market.Chart) error {
+	_, err := m.ColChart.Aggregate(
 		context.Background(),
 		m.BsonForMarketChartVolumesByIntervals(chart),
 	)

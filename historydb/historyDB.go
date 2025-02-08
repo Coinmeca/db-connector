@@ -19,7 +19,7 @@ type HistoryDB struct {
 	config *conf.Config
 
 	client       *mongo.Client
-	colTxHistory *mongo.Collection
+	ColTxHistory *mongo.Collection
 
 	start           chan struct{}
 	lastProcessedId primitive.ObjectID
@@ -44,12 +44,12 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["historyDB"]["db"].(string))
-		r.colTxHistory = db.Collection("tx_history")
+		r.ColTxHistory = db.Collection("tx_history")
 	} else {
 		return nil, err
 	}
 
-	if err := txIndex(r.colTxHistory); err != nil {
+	if err := txIndex(r.ColTxHistory); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +103,7 @@ func (h *HistoryDB) SaveTransactionRecord(txDetail *commondatabase.TxData) error
 	}
 	opts := options.Update().SetUpsert(true)
 
-	_, err := h.colTxHistory.UpdateOne(context.Background(), filter, update, opts)
+	_, err := h.ColTxHistory.UpdateOne(context.Background(), filter, update, opts)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (h *HistoryDB) PollingTxs(ctx context.Context, notificationChan chan<- *com
 		case <-ticker.C:
 			query := bson.M{"_id": bson.M{"$gt": h.lastProcessedId}}
 			opts := options.Find().SetSort(bson.M{"_id": 1})
-			cursor, err := h.colTxHistory.Find(ctx, query, opts)
+			cursor, err := h.ColTxHistory.Find(ctx, query, opts)
 			if err != nil {
 				commonlog.Logger.Error("Polling Error", zap.Error(err))
 				continue
@@ -165,7 +165,7 @@ func (h *HistoryDB) PollingTxsBackup(callback func(manage *commondatabase.TxData
 			}
 
 			opts := options.Find().SetSort(bson.M{"_id": 1})
-			cursor, err := h.colTxHistory.Find(context.Background(), query, opts)
+			cursor, err := h.ColTxHistory.Find(context.Background(), query, opts)
 			if err != nil {
 				commonlog.Logger.Error("PollingTxsBackup",
 					zap.String("PollingTxsBackup", err.Error()),

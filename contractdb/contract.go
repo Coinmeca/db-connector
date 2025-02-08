@@ -23,7 +23,7 @@ func convertAbiType(inputData *[]map[string]interface{}) (*abi.ABI, error) {
 
 func (c *ContractDB) GetContract(name string) (*commonprotocol.Contract, error) {
 	temp := &commondatabase.Contract{}
-	err := c.colContract.FindOne(context.Background(), bson.M{
+	err := c.ColContract.FindOne(context.Background(), bson.M{
 		"name": name,
 	}).Decode(temp)
 	if err != nil {
@@ -50,7 +50,7 @@ func (c *ContractDB) GetContract(name string) (*commonprotocol.Contract, error) 
 
 func (c *ContractDB) GetContracts() ([]*commonprotocol.Contract, error) {
 	result := make([]*commonprotocol.Contract, 0)
-	if cursor, err := c.colContract.Find(context.Background(), bson.M{}); err != nil {
+	if cursor, err := c.ColContract.Find(context.Background(), bson.M{}); err != nil {
 		return nil, err
 	} else {
 		defer cursor.Close(context.Background())
@@ -84,7 +84,7 @@ func (c *ContractDB) GetContractsByCate(cate string) ([]*commonprotocol.Contract
 	filter := bson.M{
 		"cate": cate,
 	}
-	if cursor, err := c.colContract.Find(context.Background(), filter); err != nil {
+	if cursor, err := c.ColContract.Find(context.Background(), filter); err != nil {
 		return nil, err
 	} else {
 		defer cursor.Close(context.Background())

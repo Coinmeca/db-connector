@@ -26,7 +26,7 @@ func (v *VaultDB) UpdateVaultDepositAmount(chainId, address string, amount primi
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updatedVault vault.Vault
-	err := v.colVault.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedVault)
+	err := v.ColVault.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedVault)
 	if err != nil {
 		commonlog.Logger.Error("UpdateVaultDepositAmount",
 			zap.String("FindOneAndUpdate", err.Error()),
@@ -51,7 +51,7 @@ func (v *VaultDB) UpdateVaultWithdrawAmount(chainId, address string, amount prim
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updatedVault vault.Vault
-	err := v.colVault.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedVault)
+	err := v.ColVault.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedVault)
 	if err != nil {
 		commonlog.Logger.Error("UpdateVaultWithdrawAmount",
 			zap.String("FindOneAndUpdate", err.Error()),

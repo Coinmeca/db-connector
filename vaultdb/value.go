@@ -18,7 +18,7 @@ func (v *VaultDB) SaveValue(chainId, address *string, value *primitive.Decimal12
 	filter, update := v.BsonForValue(chainId, address, value)
 	opts := options.Update().SetUpsert(false)
 
-	_, err := v.colVault.UpdateOne(context.Background(), filter, update, opts)
+	_, err := v.ColVault.UpdateOne(context.Background(), filter, update, opts)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func (v *VaultDB) SaveValue(chainId, address *string, value *primitive.Decimal12
 func (v *VaultDB) GetValue(chainId, address *string) *primitive.Decimal128 {
 	filter := bson.M{"chainId": chainId, "address": strings.ToLower(*address)}
 	var vault *vault.Vault
-	if err := v.colVault.FindOne(context.Background(), filter, nil).Decode(&vault); err != nil {
+	if err := v.ColVault.FindOne(context.Background(), filter, nil).Decode(&vault); err != nil {
 		return nil
 	} else {
 		return &vault.Value
@@ -39,7 +39,7 @@ func (v *VaultDB) GetValue(chainId, address *string) *primitive.Decimal128 {
 func (v *VaultDB) GetValueAtTime(time *int64, chainId *string, address *string) *primitive.Decimal128 {
 	pipeline := v.BsonForValueAtTime(time, *chainId, *address)
 
-	cursor, err := v.colChartSub.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColChartSub.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		commonlog.Logger.Error(
 			"GetValueAtTime",
@@ -77,7 +77,7 @@ func (v *VaultDB) GetValueAtTime(time *int64, chainId *string, address *string) 
 
 func (v *VaultDB) GetValuesAtTime(time *int64, chainId *string, addresses []string) map[string]*primitive.Decimal128 {
 	pipeline := v.BsonForValuesAtTime(time, *chainId, addresses)
-	cursor, err := v.colChartSub.Aggregate(context.Background(), pipeline)
+	cursor, err := v.ColChartSub.Aggregate(context.Background(), pipeline)
 
 	if err != nil {
 		commonlog.Logger.Error(

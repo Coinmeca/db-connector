@@ -20,7 +20,7 @@ type AccountDB struct {
 	config *conf.Config
 
 	client    *mongo.Client
-	colAssets *mongo.Collection
+	ColAssets *mongo.Collection
 
 	start chan struct{}
 }
@@ -81,7 +81,7 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["accountDB"]["db"].(string))
-		r.colAssets = db.Collection("assets")
+		r.ColAssets = db.Collection("assets")
 	} else {
 		return nil, err
 	}

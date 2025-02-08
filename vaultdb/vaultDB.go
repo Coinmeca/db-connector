@@ -19,10 +19,10 @@ type VaultDB struct {
 	config *conf.Config
 
 	client      *mongo.Client
-	colVault    *mongo.Collection
-	colChart    *mongo.Collection
-	colChartSub *mongo.Collection
-	colHistory  *mongo.Collection
+	ColVault    *mongo.Collection
+	ColChart    *mongo.Collection
+	ColChartSub *mongo.Collection
+	ColHistory  *mongo.Collection
 
 	start chan struct{}
 }
@@ -82,10 +82,10 @@ type VaultDBInterface interface {
 	SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.ChartSub)
 	SaveChartWithVolumeByIntervals(chart *vault.Chart, interval int64) error
 	SaveValue(chainId *string, address *string, value *primitive.Decimal128) error
-	SaveVaultChart(t *vault.Chart, interval int64) error
-	SaveVaultChartSub(t *vault.ChartSub) error
-	SaveVaultChartVolume(chart *vault.Chart, interval int64) error
-	SaveVaultChartVolumesByIntervals(chart *vault.Chart) error
+	SaveChart(t *vault.Chart, interval int64) error
+	SaveChartSub(t *vault.ChartSub) error
+	SaveChartVolume(chart *vault.Chart, interval int64) error
+	SaveChartVolumesByIntervals(chart *vault.Chart) error
 	SaveVaultInfo(info *vault.Vault) error
 	SaveVaultInfoFromModel(models *[]mongo.WriteModel, info *vault.Vault)
 	SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vault) error
@@ -117,23 +117,23 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["vaultDB"]["db"].(string))
-		r.colVault = db.Collection("vault")
-		r.colChart = db.Collection("chart")
-		r.colChartSub = db.Collection("chart_sub")
-		r.colHistory = db.Collection("history")
+		r.ColVault = db.Collection("vault")
+		r.ColChart = db.Collection("chart")
+		r.ColChartSub = db.Collection("chart_sub")
+		r.ColHistory = db.Collection("history")
 	} else {
 		return nil, err
 	}
 
-	if err := vaultIndex(r.colVault); err != nil {
+	if err := vaultIndex(r.ColVault); err != nil {
 		return nil, err
 	}
 
-	if err := chartIndex(r.colChart); err != nil {
+	if err := chartIndex(r.ColChart); err != nil {
 		return nil, err
 	}
 
-	if err := chartSubIndex(r.colChartSub); err != nil {
+	if err := chartSubIndex(r.ColChartSub); err != nil {
 		return nil, err
 	}
 
@@ -211,7 +211,7 @@ func historyIndex(col *mongo.Collection) error {
 // func (v *VaultDB) SaveVaultMintAndBurnBackup(recent *vault.Recent, vault *vault.Vault) error {
 // 	filter, update := v.BsonForVaultMintAndBurn(recent)
 // 	option := options.FindOneAndUpdate().SetUpsert(true)
-// 	err := v.colHistory.FindOneAndUpdate(
+// 	err := v.ColHistory.FindOneAndUpdate(
 // 		context.Background(),
 // 		filter,
 // 		update,

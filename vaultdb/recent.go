@@ -14,7 +14,7 @@ func (v *VaultDB) SaveVaultRecent(recent *vault.Recent) error {
 	filter, update := v.BsonForVaultRecent(recent)
 	option := options.Update().SetUpsert(true)
 
-	result, err := v.colHistory.UpdateOne(
+	result, err := v.ColHistory.UpdateOne(
 		context.Background(),
 		filter,
 		update,

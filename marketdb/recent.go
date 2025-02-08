@@ -13,7 +13,7 @@ func (m *MarketDB) SaveMarketRecent(recent *market.Recent) error {
 	filter, update := m.BsonForMarketRecent(recent)
 
 	option := options.Update().SetUpsert(true)
-	_, err := m.colHistory.UpdateOne(
+	_, err := m.ColHistory.UpdateOne(
 		context.Background(),
 		filter,
 		update,

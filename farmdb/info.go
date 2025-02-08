@@ -14,7 +14,7 @@ import (
 )
 
 func (f *FarmDB) BulkWriteInfo(models []mongo.WriteModel) error {
-	result, err := f.colFarm.BulkWrite(context.Background(), models)
+	result, err := f.ColFarm.BulkWrite(context.Background(), models)
 	if err != nil {
 		commonlog.Logger.Error("FarmDB",
 			zap.String("BulkWriteInfo", err.Error()),
@@ -34,7 +34,7 @@ func (f *FarmDB) SaveFarmInfo(info *farm.Farm) error {
 	filter, update := f.BsonForInfo(info)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := f.colFarm.FindOneAndUpdate(
+	err := f.ColFarm.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -53,7 +53,7 @@ func (f *FarmDB) GetFarm(chainId, address string) *farm.Farm {
 	result := &farm.Farm{}
 
 	filter := bson.M{"chainId": chainId, "address": strings.ToLower(address)}
-	if err := f.colFarm.FindOne(context.Background(), filter, nil).Decode(&result); err != nil {
+	if err := f.ColFarm.FindOne(context.Background(), filter, nil).Decode(&result); err != nil {
 		commonlog.Logger.Error("GetFarms",
 			zap.String("not found ", err.Error()),
 		)
@@ -66,7 +66,7 @@ func (f *FarmDB) GetFarm(chainId, address string) *farm.Farm {
 func (f *FarmDB) GetFarms(chainId *string) ([]*farm.Farm, error) {
 	var farms []*farm.Farm
 	filter := bson.M{"chainId": chainId}
-	cursor, err := f.colFarm.Find(context.Background(), filter)
+	cursor, err := f.ColFarm.Find(context.Background(), filter)
 
 	if err != nil {
 		commonlog.Logger.Error("GetFarms",

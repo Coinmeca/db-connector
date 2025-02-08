@@ -14,7 +14,7 @@ func (f *FarmDB) SaveFarmChart(t *farm.Chart) error {
 	filter, update := f.BsonForChart(t)
 	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
 
-	err := f.colChart.FindOneAndUpdate(
+	err := f.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
@@ -31,7 +31,7 @@ func (f *FarmDB) SaveFarmChart(t *farm.Chart) error {
 
 func (f *FarmDB) GetChartAtTime(chainId, address *string, time *int64) *farm.Chart {
 	var chart *farm.Chart
-	err := f.colChart.FindOne(context.Background(), bson.D{{"time", time}}).Decode(chart)
+	err := f.ColChart.FindOne(context.Background(), bson.D{{"time", time}}).Decode(chart)
 	if err == nil {
 		return chart
 	} else {
