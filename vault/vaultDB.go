@@ -5,9 +5,11 @@ import (
 	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
+	"github.com/coinmeca/go-common/commonmethod/vault"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -23,6 +25,77 @@ type VaultDB struct {
 	colHistory  *mongo.Collection
 
 	start chan struct{}
+}
+
+type VaultDBInterface interface {
+	// query
+	BsonForChart(chart *vault.Chart, interval *int64) (bson.M, bson.M)
+	BsonForChartByIntervals(chart *vault.Chart) *[]bson.M
+	BsonForChartSub(chart *vault.ChartSub) (bson.M, bson.M)
+	BsonForChartWithVolumeByIntervals(chart *vault.Chart) *[]bson.M
+	BsonForInfo(info *vault.Vault) (bson.M, bson.M)
+	BsonForValue(chainId *string, address *string, value *primitive.Decimal128) (bson.M, bson.M)
+	BsonForValueAtTime(time *int64, chainId string, address string) mongo.Pipeline
+	BsonForValuesAtTime(time *int64, chainId string, addresses []string) mongo.Pipeline
+	BsonForVaultChart(chart *vault.Chart) (bson.M, bson.M)
+	BsonForVaultChartSubAtTime(chart *vault.ChartSub) mongo.Pipeline
+	BsonForVaultChartSubsAtTime(time *int64, chainId string, addresses []string) mongo.Pipeline
+	BsonForVaultChartVolume(chart *vault.Chart, interval *int64) (bson.M, bson.M)
+	BsonForVaultChartVolumesByIntervals(chart *vault.Chart) *[]bson.M
+	BsonForVaultRecent(recent *vault.Recent) (bson.M, bson.M)
+	BsonForVaultWeight(recent *vault.Recent) (bson.M, bson.M)
+	BulkWriteChart(models []mongo.WriteModel) error
+	BulkWriteChartSub(models []mongo.WriteModel) error
+	BulkWriteInfo(models []mongo.WriteModel) error
+
+	// getter
+	GetAllKeyTokenSymbols() ([]*vault.Vault, error)
+	GetAllVaults() ([]*vault.Vault, error)
+	GetBurn24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetChart(chainId *string, address *string, interval *int64) ([]*vault.Chart, error)
+	GetChartLast(chainId *string, address *string, interval *int64) *vault.Chart
+	GetChartSub(chainId *string, address *string) ([]*vault.ChartSub, error)
+	GetChartSubAtTime(chainId *string, address *string, time *int64) (chartSub *vault.ChartSub)
+	GetChartSubLast(chainId *string, address *string) (chartSub *vault.ChartSub)
+	GetDeposit24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
+	GetKeyTokens(chainId *string) ([]*vault.Vault, error)
+	GetLastAll(nowTime *int64, last *vault.Last) error
+	GetLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetMint24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
+	GetRate24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetValue(chainId *string, address *string) *primitive.Decimal128
+	GetValueAtTime(time *int64, chainId *string, address *string) *primitive.Decimal128
+	GetValuesAtTime(time *int64, chainId *string, addresses []string) map[string]*primitive.Decimal128
+	GetVauleLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetVault(chainId *string, address *string) (*vault.Vault, error)
+	GetVaultChartSubAtTime(t *vault.ChartSub) error
+	GetVaultChartSubsAtTime(time *int64, chainId *string, addresses []string) map[string]*vault.ChartSub
+	GetVaults(chainId *string) ([]*vault.Vault, error)
+	GetWeight24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetWithdraw24h(chainId *string, address *string) (*primitive.Decimal128, error)
+
+	// setter
+	SaveChartByIntervals(t *vault.Chart) error
+	SaveChartFromModel(models *[]mongo.WriteModel, exchange *primitive.Decimal128, t *vault.Chart, interval int64)
+	SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.ChartSub)
+	SaveChartWithVolumeByIntervals(chart *vault.Chart, interval int64) error
+	SaveValue(chainId *string, address *string, value *primitive.Decimal128) error
+	SaveVaultChart(t *vault.Chart, interval int64) error
+	SaveVaultChartSub(t *vault.ChartSub) error
+	SaveVaultChartVolume(chart *vault.Chart, interval int64) error
+	SaveVaultChartVolumesByIntervals(chart *vault.Chart) error
+	SaveVaultInfo(info *vault.Vault) error
+	SaveVaultInfoFromModel(models *[]mongo.WriteModel, info *vault.Vault)
+	SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vault) error
+	SaveVaultRecent(recent *vault.Recent) error
+
+	// update
+	UpdateVaultDepositAmount(chainId string, address string, amount primitive.Decimal128) error
+	UpdateVaultWithdrawAmount(chainId string, address string, amount primitive.Decimal128) error
+
+	Start() error
 }
 
 func NewDB(config *conf.Config) (commondatabase.IRepository, error) {

@@ -5,6 +5,8 @@ import (
 	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
+	"github.com/coinmeca/go-common/commonmethod/farm"
+	"github.com/coinmeca/go-common/commonprotocol"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,6 +24,36 @@ type FarmDB struct {
 	colHistory *mongo.Collection
 
 	start chan struct{}
+}
+
+type FarmDBInterface interface {
+	// query
+	BsonForChart(t *farm.Chart) (bson.M, bson.M)
+	BsonForFarmRecent(recent *farm.Recent) (bson.M, bson.M)
+	BsonForInfo(info *farm.Farm) (bson.M, bson.M)
+	BulkWriteInfo(models []mongo.WriteModel) error
+
+	// getter
+	GetAllFarmAddresses() ([]*commonprotocol.Contract, error)
+	GetChartAtTime(chainId *string, address *string, time *int64) *farm.Chart
+	GetFarm(chainId string, address string) *farm.Farm
+	GetFarms(chainId *string) ([]*farm.Farm, error)
+	GetInterest24h(nowTime *int64, last *farm.Last)
+	GetInterest24hBackup(nowTime *int64, last *farm.Last)
+	GetStakedWithValue(nowTime *int64, last *farm.Last)
+	GetStakedWithValueBackup(nowTime *int64, last *farm.Last)
+	GetStakedWithValueBackup2(nowTime *int64, last *farm.Last)
+	GetStaking24h(nowTime *int64, last *farm.Last)
+	GetStaking24hBackup(nowTime *int64, last *farm.Last)
+	GetTotalInterest(nowTime *int64, last *farm.Last)
+
+	// setter
+	SaveFarmChart(t *farm.Chart) error
+	SaveFarmInfo(info *farm.Farm) error
+	SaveFarmInfoFromModel(models *[]mongo.WriteModel, info *farm.Farm)
+	SaveFarmRecent(recent *farm.Recent) error
+
+	Start() error
 }
 
 func NewDB(config *conf.Config) (commondatabase.IRepository, error) {

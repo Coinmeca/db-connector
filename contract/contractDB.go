@@ -5,10 +5,13 @@ import (
 	"db-connector/conf"
 	"db-connector/key"
 	"fmt"
+	"math/big"
 
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
+	"github.com/coinmeca/go-common/commonprotocol"
 	commonrepository "github.com/coinmeca/go-common/commonrepository"
+	"github.com/ethereum/go-ethereum"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -26,6 +29,24 @@ type ContractDB struct {
 	chains       []string
 	chainsUpdate int64
 	start        chan struct{}
+}
+
+type ContractDBInterface interface {
+	ConnectKeyManager(key *key.KeyManager)
+
+	Call(chainId string, result interface{}, method string, args ...interface{}) error
+	ContractCall(ctx context.Context, chainId string, msg ethereum.CallMsg, blockNumber *big.Int) []byte
+
+	// getter
+	GetChains() []*commondatabase.Chain
+	GetContract(name string) (*commonprotocol.Contract, error)
+	GetContracts() ([]*commonprotocol.Contract, error)
+	GetContractsByCate(cate string) ([]*commonprotocol.Contract, error)
+	GetEthRepo(chainId string) *commonrepository.EthRepository
+	GetEthRepoByKey(chainId string, key *commondatabase.APIKey) *commonrepository.EthRepository
+	GetTargetChains() []string
+
+	Start() error
 }
 
 func NewDB(config *conf.Config) (commondatabase.IRepository, error) {

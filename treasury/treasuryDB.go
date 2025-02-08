@@ -6,6 +6,7 @@ import (
 
 	"github.com/coinmeca/go-common/commonmethod/treasury"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
@@ -23,6 +24,38 @@ type TreasuryDB struct {
 	colToken    *mongo.Collection
 
 	start chan struct{}
+}
+
+type TreasuryDBInterface interface {
+	// query
+	BsonForChart(chart *treasury.Chart) (bson.M, bson.M)
+	BsonForChartTV(chainId *string, time *int64, totalVolume *primitive.Decimal128) (bson.M, bson.M)
+	BsonForChartTVL(chainId *string, time *int64, totalValueLocked *primitive.Decimal128) (bson.M, bson.M)
+	BsonForChartTW(chainId *string, totalWeight *primitive.Decimal128) (bson.M, bson.M)
+	BsonForSetValue(symbol string, name string, value *primitive.Decimal128) (bson.M, bson.M)
+	BsonForTokens(token *bson.M) (bson.M, bson.M)
+	BsonForTradingVolume(recent *treasury.Chart) (bson.M, bson.M)
+	BulkWriteTokens(models *[]mongo.WriteModel) error
+
+	// getter
+	GetLatestChart(chainId string) (*treasury.Chart, error)
+	GetLatestTVValue(chainId string) (primitive.Decimal128, error)
+	GetTokens() ([]*bson.M, error)
+	GetTreasuryChart(chainId *string) ([]*treasury.Chart, error)
+	GetTreasuryChartLast(chainId *string) (*treasury.Last, error)
+	GetValue(name *string, symbol *string) (*primitive.Decimal128, error)
+	GetValues() (*map[string]primitive.Decimal128, error)
+
+	// setter
+	SaveTradingVolume(chart *treasury.Chart) error
+	SaveTreasuryChart(chart *treasury.Chart) error
+	SetValue(symbol string, name string, value *primitive.Decimal128) error
+
+	// update
+	UpdateTradingVolume(chainId string, volume *primitive.Decimal128) error
+	UpsertDailyChart(chart *treasury.Chart) error
+
+	Start() error
 }
 
 func NewDB(config *conf.Config) (commondatabase.IRepository, error) {

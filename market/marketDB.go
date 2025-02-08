@@ -5,10 +5,12 @@ import (
 	"db-connector/conf"
 
 	"github.com/coinmeca/go-common/commondatabase"
+	"github.com/coinmeca/go-common/commonprotocol"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/market"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -33,6 +35,46 @@ type MarketInfos struct {
 type OrderbookInfo struct {
 	Address   string
 	Orderbook market.OutputOrderbook
+}
+
+type MarketDBInterface interface {
+	// query
+	BsonForChart(k *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForChartByIntervals(k *market.Chart) *[]bson.M
+	BsonForInfo(info *market.Market) (bson.M, bson.M)
+	BsonForMarketChart(chart *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForMarketChartVolume(chart *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForMarketChartVolumesByIntervals(chart *market.Chart) *[]bson.M
+	BsonForMarketLiquidity(chainId *string, address *string, liquidity *[]*market.MarketLiquidity) (bson.M, bson.A)
+	BsonForMarketRecent(recent *market.Recent) (bson.M, bson.M)
+	BulkWriteInfo(models []mongo.WriteModel) error
+
+	// getter
+	GetAllMarketAddresses() ([]*commonprotocol.Contract, error)
+	GetAllMarkets() ([]*market.Market, error)
+	GetChart(chainId *string, address *string, interval *int64) ([]*market.Chart, error)
+	GetChartLast(chainId *string, address *string, interval *int64) *market.Chart
+	GetHighAndLow24h(chainId *string, address *string) (*primitive.Decimal128, *primitive.Decimal128, error)
+	GetLastAll(time *int64, last *market.Last)
+	GetMarket(chainId *string, address *string) (*market.Market, error)
+	GetMarketRoute(chainId *string, base *string, quote *string) (*market.Market, error)
+	GetMarketTicker(chainId *string, address *string) map[string]string
+	GetMarkets(chainId *string) ([]*market.Market, error)
+	GetPrice24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetVolume24h(chainId *string, address *string) (*primitive.Decimal128, *primitive.Decimal128, error)
+
+	// setter
+	SaveMarketChart(chart *market.Chart, interval int64) error
+	SaveMarketChartByIntervals(chart *market.Chart) error
+	SaveMarketChartVolume(chart *market.Chart, interval int64) error
+	SaveMarketChartVolumesByIntervals(chart *market.Chart) error
+	SaveMarketInfo(info *market.Market) error
+	SaveMarketInfoFromModel(models *[]mongo.WriteModel, info *market.Market)
+	SaveMarketLiquidity(chainId *string, address *string, liquidity *[]*market.MarketLiquidity) error
+	SaveMarketRecent(recent *market.Recent) error
+	SaveOrderbook(o market.OutputOrderbookResult) error
+
+	Start() error
 }
 
 func NewDB(config *conf.Config) (commondatabase.IRepository, error) {

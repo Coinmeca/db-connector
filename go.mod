@@ -13,6 +13,7 @@ require (
 	github.com/coinmeca/go-common v0.0.99119
 	github.com/ethereum/go-ethereum v1.15.0
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	go.mongodb.org/mongo-driver v1.17.2
 	go.uber.org/zap v1.27.0
 )
@@ -38,6 +39,7 @@ require (
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
+	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/supranational/blst v0.3.13 // indirect
