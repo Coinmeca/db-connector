@@ -1,8 +1,6 @@
 module db-connector
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.21
 
 replace (
 	github.com/coinmeca/go-common => ../go-common
