@@ -1,5 +1,12 @@
 ﻿package conf
 
+import (
+	"fmt"
+	"os"
+
+	"github.com/naoina/toml"
+)
+
 type Config struct {
 	Common struct {
 		ServiceId string
