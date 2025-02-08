@@ -2,8 +2,8 @@ package accountdb
 
 import (
 	"context"
-	"db-connector/conf"
 
+	"github.com/coinmeca/db-connector/conf"
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/account"

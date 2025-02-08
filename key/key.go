@@ -2,10 +2,10 @@
 
 import (
 	"context"
-	"db-connector/conf"
 	"errors"
 	"time"
 
+	"github.com/coinmeca/db-connector/conf"
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"

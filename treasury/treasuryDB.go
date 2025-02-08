@@ -2,8 +2,8 @@
 
 import (
 	"context"
-	"db-connector/conf"
 
+	"github.com/coinmeca/db-connector/conf"
 	"github.com/coinmeca/go-common/commonmethod/treasury"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

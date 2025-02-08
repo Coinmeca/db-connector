@@ -2,8 +2,8 @@
 
 import (
 	"context"
-	"db-connector/conf"
 
+	"github.com/coinmeca/db-connector/conf"
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonmethod/farm"
 	"github.com/coinmeca/go-common/commonprotocol"

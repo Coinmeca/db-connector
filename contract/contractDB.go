@@ -2,11 +2,11 @@ package contractdb
 
 import (
 	"context"
-	"db-connector/conf"
-	"db-connector/key"
 	"fmt"
 	"math/big"
 
+	"github.com/coinmeca/db-connector/conf"
+	"github.com/coinmeca/db-connector/key"
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonprotocol"

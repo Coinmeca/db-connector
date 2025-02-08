@@ -1,11 +1,8 @@
 module github.com/coinmeca/db-connector
 
-go 1.21
+go 1.22.0
 
-replace (
-	github.com/coinmeca/go-common => ../go-common
-	github.com/coinmeca/grpc-module => ../grpc-module
-)
+toolchain go1.22.3
 
 require (
 	github.com/coinmeca/go-common v0.0.99119
