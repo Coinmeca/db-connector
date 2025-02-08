@@ -1,4 +1,4 @@
-module db-connector
+module github.com/coinmeca/db-connector
 
 go 1.21
 
