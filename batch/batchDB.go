@@ -2,6 +2,7 @@ package batch
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/coinmeca/db-connector/conf"
 	"github.com/coinmeca/go-common/commondatabase"
@@ -27,6 +28,7 @@ func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
 		start:  make(chan struct{}),
 	}
 
+	fmt.Println(r.config)
 	var err error
 	credential := options.Credential{
 		Username: r.config.Repositories["batchDB"]["username"].(string),

@@ -11,6 +11,7 @@ import (
 	"github.com/coinmeca/db-connector/contractdb"
 	"github.com/coinmeca/db-connector/farmdb"
 	"github.com/coinmeca/db-connector/historydb"
+	"github.com/coinmeca/db-connector/key"
 	"github.com/coinmeca/db-connector/marketdb"
 	"github.com/coinmeca/db-connector/treasurydb"
 	"github.com/coinmeca/db-connector/vaultdb"
@@ -48,9 +49,20 @@ func NewRepositories(c *conf.Config) (*Repositories, error) {
 }
 
 func (r *Repositories) initializeRepositories() error {
+	key, err := key.NewKeyManager(r.conf)
+	if err != nil {
+		return fmt.Errorf("Key Manager initialization failed: %v", err)
+	}
+	r.register(key)
+
+	rep, err := contractdb.NewDB(r.conf, key)
+	if err != nil {
+		return err
+	}
+	r.register(rep)
+
 	repoInitializers := []func(*conf.Config) (commondatabase.IRepository, error){
 		batch.NewDB,
-		contractdb.NewDB,
 		historydb.NewDB,
 		vaultdb.NewDB,
 		marketdb.NewDB,

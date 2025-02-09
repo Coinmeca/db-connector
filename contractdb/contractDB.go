@@ -2,7 +2,6 @@ package contractdb
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/coinmeca/db-connector/conf"
@@ -20,9 +19,9 @@ import (
 type ContractDB struct {
 	conf *conf.Config
 
-	client      *mongo.Client
-	ColContract *mongo.Collection
-	ColChain    *mongo.Collection
+	client       *mongo.Client
+	ColContract  *mongo.Collection
+	ColChain     *mongo.Collection
 	ColChainInfo *mongo.Collection
 
 	key          *key.KeyManager
@@ -50,11 +49,8 @@ type ContractDBInterface interface {
 	Start() error
 }
 
-func NewDB(config *conf.Config) (commondatabase.IRepository, error) {
-	key, err := key.NewKeyManager(config)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize key manager: %v", err))
-	}
+func NewDB(config *conf.Config, key *key.KeyManager) (commondatabase.IRepository, error) {
+	var err error
 
 	r := &ContractDB{
 		conf:    config,
