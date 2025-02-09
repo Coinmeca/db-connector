@@ -60,11 +60,11 @@ func (r *Repositories) initializeRepositories() error {
 	}
 
 	for _, initializer := range repoInitializers {
-		repo, err := initializer(r.conf)
+		rep, err := initializer(r.conf)
 		if err != nil {
 			return err
 		}
-		r.register(repo)
+		r.register(rep)
 	}
 
 	return nil
@@ -81,15 +81,15 @@ func (r *Repositories) startAll() error {
 	return nil
 }
 
-func (r *Repositories) register(repo commondatabase.IRepository) error {
+func (r *Repositories) register(rep commondatabase.IRepository) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	repoType := reflect.TypeOf(repo)
+	repoType := reflect.TypeOf(rep)
 	if _, exists := r.elems[repoType]; exists {
 		return fmt.Errorf("duplicate repository instance: %v", repoType)
 	}
-	r.elems[repoType] = reflect.ValueOf(repo)
+	r.elems[repoType] = reflect.ValueOf(rep)
 	return nil
 }
 
