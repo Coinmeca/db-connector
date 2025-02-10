@@ -32,7 +32,7 @@ func (f *FarmDB) SaveFarmInfoFromModel(models *[]mongo.WriteModel, info *farm.Fa
 
 func (f *FarmDB) SaveFarmInfo(info *farm.Farm) error {
 	filter, update := f.BsonForInfo(info)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := f.ColFarm.FindOneAndUpdate(
 		context.Background(),

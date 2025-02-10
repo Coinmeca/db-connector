@@ -56,7 +56,7 @@ func (v *VaultDB) SaveChart(t *vault.Chart, interval int64) error {
 	}
 
 	filter, update := v.BsonForChart(t, &interval)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	err := v.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
@@ -113,7 +113,7 @@ func (v *VaultDB) SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.Cha
 
 func (v *VaultDB) SaveChartSub(t *vault.ChartSub) error {
 	filter, update := v.BsonForChartSub(t)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := v.ColChartSub.FindOneAndUpdate(
 		context.Background(),
@@ -262,7 +262,7 @@ func (v *VaultDB) SaveChartVolume(chart *vault.Chart, interval int64) error {
 	}
 
 	filter, update := v.BsonForVaultChartVolume(chart, &interval)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := v.ColChart.FindOneAndUpdate(
 		context.Background(),

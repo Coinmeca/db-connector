@@ -16,30 +16,18 @@ import (
 
 func (t *TreasuryDB) SaveTreasuryChart(chart *treasury.Chart) error {
 	filter, update := t.BsonForChart(chart)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := t.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,
 		update,
 		option,
-	).Decode(t)
+	).Decode(chart)
 	if err != nil {
 		commonlog.Logger.Error("SaveTreasuryChart",
 			zap.String("Failed to update chart", err.Error()),
 		)
-	}
-	return nil
-}
-
-func (t *TreasuryDB) UpsertDailyChart(chart *treasury.Chart) error {
-	filter, update := t.BsonForChart(chart)
-	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-
-	err := t.ColChart.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(chart)
-	if err != nil {
-		commonlog.Logger.Error("UpsertDailyChart", zap.String("Failed to update or insert chart", err.Error()))
-		return err
 	}
 	return nil
 }

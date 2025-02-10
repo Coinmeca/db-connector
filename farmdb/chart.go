@@ -12,7 +12,7 @@ import (
 
 func (f *FarmDB) SaveFarmChart(t *farm.Chart) error {
 	filter, update := f.BsonForChart(t)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := f.ColChart.FindOneAndUpdate(
 		context.Background(),

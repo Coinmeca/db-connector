@@ -19,7 +19,7 @@ func (m *MarketDB) SaveChart(chart *market.Chart, interval int64) error {
 	}
 
 	filter, update := m.BsonForMarketChart(chart, &interval)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	err := m.ColChart.FindOneAndUpdate(
 		context.Background(),
 		filter,

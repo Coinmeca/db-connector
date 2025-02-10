@@ -110,7 +110,7 @@ func (k *KeyManager) ExpiredKey(cate, chainId, key string) error {
 		},
 	}
 
-	options := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	options := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	result := col.FindOneAndUpdate(context.Background(), filter, update, options)
 	if err := result.Err(); err != nil {
 		commonlog.Logger.Error("ExpiredKey",
@@ -141,7 +141,7 @@ func (k *KeyManager) SetKey(cate, chainId, key string) error {
 		},
 	}
 
-	options := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	options := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	err := col.FindOneAndUpdate(context.Background(), filter, update, options).Decode(current)
 	if err != nil {
 		commonlog.Logger.Error("SetKey",

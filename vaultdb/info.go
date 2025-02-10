@@ -34,7 +34,7 @@ func (v *VaultDB) SaveVaultInfoFromModel(models *[]mongo.WriteModel, info *vault
 // below kbi works : abi -> inset db
 func (v *VaultDB) SaveVaultInfo(info *vault.Vault) error {
 	filter, update := v.BsonForInfo(info)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := v.ColVault.FindOneAndUpdate(
 		context.Background(),

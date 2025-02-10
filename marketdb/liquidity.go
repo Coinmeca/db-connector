@@ -11,7 +11,7 @@ import (
 
 func (m *MarketDB) SaveMarketLiquidity(chainId, address *string, liquidity *[]*market.MarketLiquidity) error {
 	filter, update := m.BsonForMarketLiquidity(chainId, address, liquidity)
-	option := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	market := &market.Market{}
 	err := m.ColMarket.FindOneAndUpdate(
