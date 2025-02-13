@@ -31,17 +31,14 @@ type VaultDBInterface interface {
 	// query
 	BsonForChart(chart *vault.Chart, interval *int64) (bson.M, bson.M)
 	BsonForChartByIntervals(chart *vault.Chart) *[]bson.M
+	BsonForChartPrice(chart *vault.Chart, interval *int64) (bson.M, bson.M)
 	BsonForChartSub(chart *vault.ChartSub) (bson.M, bson.M)
-	BsonForChartWithVolumeByIntervals(chart *vault.Chart) *[]bson.M
+	BsonForChartSubAtTime(time *int64, chainId string, address string) mongo.Pipeline
+	BsonForChartSubsAtTime(time *int64, chainId string, addresses []string) mongo.Pipeline
 	BsonForInfo(info *vault.Vault) (bson.M, bson.M)
 	BsonForValue(chainId *string, address *string, value *primitive.Decimal128) (bson.M, bson.M)
 	BsonForValueAtTime(time *int64, chainId string, address string) mongo.Pipeline
 	BsonForValuesAtTime(time *int64, chainId string, addresses []string) mongo.Pipeline
-	BsonForVaultChart(chart *vault.Chart) (bson.M, bson.M)
-	BsonForVaultChartSubAtTime(chart *vault.ChartSub) mongo.Pipeline
-	BsonForVaultChartSubsAtTime(time *int64, chainId string, addresses []string) mongo.Pipeline
-	BsonForVaultChartVolume(chart *vault.Chart, interval *int64) (bson.M, bson.M)
-	BsonForVaultChartVolumesByIntervals(chart *vault.Chart) *[]bson.M
 	BsonForVaultRecent(recent *vault.Recent) (bson.M, bson.M)
 	BsonForVaultWeight(recent *vault.Recent) (bson.M, bson.M)
 	BulkWriteChart(models []mongo.WriteModel) error
@@ -51,47 +48,44 @@ type VaultDBInterface interface {
 	// getter
 	GetAllKeyTokenSymbols() ([]*vault.Vault, error)
 	GetAllVaults() ([]*vault.Vault, error)
-	GetBurn24h(chainId *string, address *string) (*primitive.Decimal128, error)
-	GetChart(chainId *string, address *string, interval *int64) ([]*vault.Chart, error)
+	GetKeyTokens(chainId *string) ([]*vault.Vault, error)
+	GetKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
+	GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
+	GetChart(chainId *string, address *string, interval *int64) []*vault.Chart
 	GetChartLast(chainId *string, address *string, interval *int64) *vault.Chart
 	GetChartSub(chainId *string, address *string) ([]*vault.ChartSub, error)
 	GetChartSubAtTime(chainId *string, address *string, time *int64) (chartSub *vault.ChartSub)
 	GetChartSubLast(chainId *string, address *string) (chartSub *vault.ChartSub)
-	GetDeposit24h(chainId *string, address *string) (*primitive.Decimal128, error)
-	GetKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
-	GetKeyTokens(chainId *string) ([]*vault.Vault, error)
-	GetLastAll(nowTime *int64, last *vault.Last) error
-	GetLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
-	GetMint24h(chainId *string, address *string) (*primitive.Decimal128, error)
-	GetNonKeyTokenSymbols(chainId *string) ([]*vault.Vault, error)
-	GetRate24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetChartSubsAtTime(time *int64, chainId *string, addresses []string) map[string]*vault.ChartSub
 	GetValue(chainId *string, address *string) *primitive.Decimal128
 	GetValueAtTime(time *int64, chainId *string, address *string) *primitive.Decimal128
 	GetValuesAtTime(time *int64, chainId *string, addresses []string) map[string]*primitive.Decimal128
-	GetVauleLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
 	GetVault(chainId *string, address *string) (*vault.Vault, error)
-	GetVaultChartSubAtTime(t *vault.ChartSub) error
-	GetVaultChartSubsAtTime(time *int64, chainId *string, addresses []string) map[string]*vault.ChartSub
 	GetVaults(chainId *string) ([]*vault.Vault, error)
-	GetWeight24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetDeposit24h(chainId *string, address *string) (*primitive.Decimal128, error)
 	GetWithdraw24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetMint24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetBurn24h(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetRate24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetWeight24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetValueLocked24hAgo(chainId *string, address *string) (*primitive.Decimal128, error)
+	GetLastAll(nowTime *int64, last *vault.Last) error
 
 	// setter
+	SaveChart(t *vault.Chart, interval int64) error
 	SaveChartByIntervals(t *vault.Chart) error
 	SaveChartFromModel(models *[]mongo.WriteModel, exchange *primitive.Decimal128, t *vault.Chart, interval int64)
-	SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.ChartSub)
-	SaveChartWithVolumeByIntervals(chart *vault.Chart, interval int64) error
-	SaveValue(chainId *string, address *string, value *primitive.Decimal128) error
-	SaveChart(t *vault.Chart, interval int64) error
 	SaveChartSub(t *vault.ChartSub) error
+	SaveChartSubFromModel(models *[]mongo.WriteModel, t *vault.ChartSub)
 	SaveChartVolume(chart *vault.Chart, interval int64) error
 	SaveChartVolumesByIntervals(chart *vault.Chart) error
+	SaveValue(chainId *string, address *string, value *primitive.Decimal128) error
 	SaveVaultInfo(info *vault.Vault) error
 	SaveVaultInfoFromModel(models *[]mongo.WriteModel, info *vault.Vault)
 	SaveVaultInfoWithWeight(recent *vault.Recent, info *vault.Vault) error
 	SaveVaultRecent(recent *vault.Recent) error
 
-	// update
 	UpdateVaultDepositAmount(chainId string, address string, amount primitive.Decimal128) error
 	UpdateVaultWithdrawAmount(chainId string, address string, amount primitive.Decimal128) error
 

@@ -89,11 +89,11 @@ func (m *MarketDB) GetLastAll(time *int64, last *market.Last) {
 	defer cursor.Close(context.Background())
 
 	if cursor.Next(context.Background()) {
-		if err := cursor.Decode(&_24h); err != nil {
-			commonlog.Logger.Error("GetLastAll",
-				zap.String("No Result 24h ago", err.Error()),
-			)
-		}
+		// if err := cursor.Decode(&_24h); err != nil {
+		// commonlog.Logger.Info("GetLastAll",
+		// zap.String("No Result 24h ago", err.Error()),
+		// )
+		// }
 		last.Price = _24h.Price
 	}
 }

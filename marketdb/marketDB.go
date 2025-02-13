@@ -39,12 +39,11 @@ type OrderbookInfo struct {
 
 type MarketDBInterface interface {
 	// query
-	BsonForChart(k *market.Chart, interval *int64) (bson.M, bson.M)
-	BsonForChartByIntervals(k *market.Chart) *[]bson.M
 	BsonForInfo(info *market.Market) (bson.M, bson.M)
-	BsonForMarketChart(chart *market.Chart, interval *int64) (bson.M, bson.M)
-	BsonForMarketChartVolume(chart *market.Chart, interval *int64) (bson.M, bson.M)
-	BsonForMarketChartVolumesByIntervals(chart *market.Chart) *[]bson.M
+	BsonForChart(chart *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForChartPrice(chart *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForChartVolume(chart *market.Chart, interval *int64) (bson.M, bson.M)
+	BsonForChartByIntervals(chart *market.Chart) *[]bson.M
 	BsonForMarketLiquidity(chainId *string, address *string, liquidity *[]*market.MarketLiquidity) (bson.M, bson.A)
 	BsonForMarketRecent(recent *market.Recent) (bson.M, bson.M)
 	BulkWriteInfo(models []mongo.WriteModel) error

@@ -18,7 +18,7 @@ func (m *MarketDB) SaveChart(chart *market.Chart, interval int64) error {
 		chart.Open = last.Close
 	}
 
-	filter, update := m.BsonForMarketChart(chart, &interval)
+	filter, update := m.BsonForChart(chart, &interval)
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 	err := m.ColChart.FindOneAndUpdate(
 		context.Background(),
@@ -39,11 +39,51 @@ func (m *MarketDB) SaveChart(chart *market.Chart, interval int64) error {
 func (m *MarketDB) SaveChartByIntervals(chart *market.Chart) error {
 	_, err := m.ColChart.Aggregate(
 		context.Background(),
+		*m.BsonForChartByIntervals(chart),
+	)
+
+	if err != nil {
+		commonlog.Logger.Error("Market SaveChart with pipeline",
+			zap.String("Failed to aggregate chart", err.Error()),
+		)
+		return err
+	}
+
+	return nil
+}
+
+func (m *MarketDB) SaveChartVolume(chart *market.Chart, interval int64) error {
+	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+	if last != nil && last.Time == chart.Time {
+		chart.Open = last.Close
+	}
+
+	filter, update := m.BsonForChartVolume(chart, &interval)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	err := m.ColChart.FindOneAndUpdate(
+		context.Background(),
+		filter,
+		update,
+		option,
+	).Decode(chart)
+	if err != nil {
+		commonlog.Logger.Error("Market SaveChartVolume",
+			zap.String("Failed to update chart volume", err.Error()),
+		)
+	}
+
+	return nil
+}
+
+func (m *MarketDB) SaveChartVolumesByIntervals(chart *market.Chart) error {
+	_, err := m.ColChart.Aggregate(
+		context.Background(),
 		m.BsonForChartByIntervals(chart),
 	)
 
 	if err != nil {
-		commonlog.Logger.Error("Vault SaveChart with pipeline",
+		commonlog.Logger.Error("Market SaveChartVolumesByIntervals with pipeline",
 			zap.String("Failed to aggregate chart", err.Error()),
 		)
 		return err
@@ -100,44 +140,4 @@ func (m *MarketDB) GetChartLast(chainId, address *string, interval *int64) *mark
 	}
 
 	return chart
-}
-
-func (m *MarketDB) SaveChartVolume(chart *market.Chart, interval int64) error {
-	last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
-	if last != nil && last.Time == chart.Time {
-		chart.Open = last.Close
-	}
-
-	filter, update := m.BsonForMarketChartVolume(chart, &interval)
-	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-
-	err := m.ColChart.FindOneAndUpdate(
-		context.Background(),
-		filter,
-		update,
-		option,
-	).Decode(chart)
-	if err != nil {
-		commonlog.Logger.Error("Market SaveChartVolume",
-			zap.String("Failed to update chart volume", err.Error()),
-		)
-	}
-
-	return nil
-}
-
-func (m *MarketDB) SaveChartVolumesByIntervals(chart *market.Chart) error {
-	_, err := m.ColChart.Aggregate(
-		context.Background(),
-		m.BsonForMarketChartVolumesByIntervals(chart),
-	)
-
-	if err != nil {
-		commonlog.Logger.Error("Market SaveChartVolumesByIntervals with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
-		)
-		return err
-	}
-
-	return nil
 }

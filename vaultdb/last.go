@@ -495,7 +495,7 @@ func (v *VaultDB) GetWeight24hAgo(chainId, address *string) (*primitive.Decimal1
 	return &zero, nil
 }
 
-func (v *VaultDB) GetVauleLocked24hAgo(chainId, address *string) (*primitive.Decimal128, error) {
+func (v *VaultDB) GetValueLocked24hAgo(chainId, address *string) (*primitive.Decimal128, error) {
 	time := time.Now().Unix()
 	ago := time - 86400
 

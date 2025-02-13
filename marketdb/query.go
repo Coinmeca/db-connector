@@ -32,32 +32,54 @@ func (m *MarketDB) BsonForInfo(info *market.Market) (bson.M, bson.M) {
 	return filter, update
 }
 
-func (m *MarketDB) BsonForChart(k *market.Chart, interval *int64) (bson.M, bson.M) {
+func (m *MarketDB) BsonForChart(chart *market.Chart, interval *int64) (bson.M, bson.M) {
+	filter := bson.M{
+		"interval": interval,
+		"chainId":  chart.ChainId,
+		"address":  chart.Address,
+		"time":     chart.Time,
+	}
+
+	update := bson.M{
+		"$set": bson.M{"close": chart.Close},
+		"$max": bson.M{"high": chart.Close},
+		"$min": bson.M{"low": chart.Close},
+		"$setOnInsert": bson.M{
+			"interval": interval,
+			"chainId":  chart.ChainId,
+			"address":  chart.Address,
+			"time":     chart.Time,
+			"open":     chart.Open,
+		},
+		"$inc": bson.M{
+			"volume.base":  chart.Volume.Base,
+			"volume.quote": chart.Volume.Quote,
+		},
+	}
+
+	return filter, update
+}
+
+func (m *MarketDB) BsonForChartPrice(chart *market.Chart, interval *int64) (bson.M, bson.M) {
 	var zero primitive.Decimal128
 
 	filter := bson.M{
 		"interval": interval,
-		"chainId":  k.ChainId,
-		"address":  k.Address,
-		"time":     k.Time,
+		"chainId":  chart.ChainId,
+		"address":  chart.Address,
+		"time":     chart.Time,
 	}
 
 	update := bson.M{
-		"$set": bson.M{
-			"close": k.Close,
-		},
-		"$max": bson.M{
-			"high": k.Close,
-		},
-		"$min": bson.M{
-			"low": k.Close,
-		},
+		"$set": bson.M{"close": chart.Close},
+		"$max": bson.M{"high": chart.Close},
+		"$min": bson.M{"low": chart.Close},
 		"$setOnInsert": bson.M{
 			"interval":     interval,
-			"chainId":      k.ChainId,
-			"address":      k.Address,
-			"time":         k.Time,
-			"open":         k.Open,
+			"chainId":      chart.ChainId,
+			"address":      chart.Address,
+			"time":         chart.Time,
+			"open":         chart.Open,
 			"volume.base":  zero,
 			"volume.quote": zero,
 		},
@@ -66,22 +88,47 @@ func (m *MarketDB) BsonForChart(k *market.Chart, interval *int64) (bson.M, bson.
 	return filter, update
 }
 
-func (m *MarketDB) BsonForChartByIntervals(k *market.Chart) *[]bson.M {
+func (m *MarketDB) BsonForChartVolume(chart *market.Chart, interval *int64) (bson.M, bson.M) {
+	filter := bson.M{
+		"interval": interval,
+		"chainId":  chart.ChainId,
+		"address":  chart.Address,
+		"time":     chart.Time,
+	}
+	update := bson.M{
+		"$set": bson.M{"close": chart.Close},
+		"$max": bson.M{"high": chart.Close},
+		"$min": bson.M{"low": chart.Close},
+		"$setOnInsert": bson.M{
+			"interval": interval,
+			"chainId":  chart.ChainId,
+			"address":  chart.Address,
+			"time":     chart.Time,
+			"open":     chart.Open,
+		},
+		"$inc": bson.M{
+			"volume.base":  chart.Volume.Base,
+			"volume.quote": chart.Volume.Quote,
+		},
+	}
+	return filter, update
+}
+
+func (m *MarketDB) BsonForChartByIntervals(chart *market.Chart) *[]bson.M {
 	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
 
-	var zero primitive.Decimal128
 	var pipeline []bson.M
 	pipeline = append(pipeline, bson.M{
 		"$match": bson.M{
-			"chainId": k.ChainId,
-			"address": k.Address,
+			"chainId": chart.ChainId,
+			"address": chart.Address,
 		},
 	})
 
 	for _, interval := range intervals {
-		time := commonutils.TruncateUnix(k.Time, interval)
-		last := m.GetChartLast(&k.ChainId, &k.Address, &interval)
-		open := k.Close
+		time := commonutils.TruncateUnix(chart.Time, interval)
+		last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+		open := chart.Close
 
 		if last != nil && last.Time == time {
 			open = last.Close
@@ -92,23 +139,42 @@ func (m *MarketDB) BsonForChartByIntervals(k *market.Chart) *[]bson.M {
 				"time":     time,
 				"interval": interval,
 			},
+		})
+
+		pipeline = append(pipeline, bson.M{
 			"$set": bson.M{
-				"close": k.Close,
+				"time":     bson.M{"$ifNull": bson.A{"$time", time}},
+				"interval": bson.M{"$ifNull": bson.A{"$interval", interval}},
+				"chainId":  bson.M{"$ifNull": bson.A{"$chainId", chart.ChainId}},
+				"address":  bson.M{"$ifNull": bson.A{"$address", chart.Address}},
+				"open":     bson.M{"$ifNull": bson.A{"$open", open}},
+				"close":    chart.Close,
 			},
-			"$max": bson.M{
-				"high": k.Close,
+		})
+
+		pipeline = append(pipeline, bson.M{
+			"$group": bson.M{
+				"_id": nil,
+				"high": bson.M{
+					"$max": "$close",
+				},
+				"low": bson.M{
+					"$min": "$close",
+				},
 			},
-			"$min": bson.M{
-				"low": k.Close,
+		})
+
+		pipeline = append(pipeline, bson.M{
+			"$set": bson.M{
+				"high": "$high",
+				"low":  "$low",
 			},
-			"$setOnInsert": bson.M{
-				"chainId":      k.ChainId,
-				"address":      k.Address,
-				"time":         time,
-				"interval":     interval,
-				"open":         open,
-				"volume.base":  zero,
-				"volume.quote": zero,
+		})
+
+		pipeline = append(pipeline, bson.M{
+			"$set": bson.M{
+				"volume.base":  bson.M{"$add": bson.A{"$volume.base", chart.Volume.Base}},
+				"volume.quote": bson.M{"$add": bson.A{"$volume.quote", chart.Volume.Quote}},
 			},
 		})
 	}
@@ -136,104 +202,6 @@ func (m *MarketDB) BsonForMarketRecent(recent *market.Recent) (bson.M, bson.M) {
 	}
 
 	return filter, update
-}
-
-func (m *MarketDB) BsonForMarketChart(chart *market.Chart, interval *int64) (bson.M, bson.M) {
-	filter := bson.M{
-		"interval": interval,
-		"chainId":  chart.ChainId,
-		"address":  chart.Address,
-		"time":     chart.Time,
-	}
-	update := bson.M{
-		"$set": bson.M{"close": chart.Close},
-		"$max": bson.M{"high": chart.Close},
-		"$min": bson.M{"low": chart.Close},
-		"$setOnInsert": bson.M{
-			"chainId": chart.ChainId,
-			"address": chart.Address,
-			"time":    chart.Time,
-			"open":    chart.Open,
-		},
-		"$inc": bson.M{
-			"volume.base":  chart.Volume.Base,
-			"volume.quote": chart.Volume.Quote,
-		},
-	}
-	return filter, update
-}
-
-func (m *MarketDB) BsonForMarketChartVolume(chart *market.Chart, interval *int64) (bson.M, bson.M) {
-	filter := bson.M{
-		"interval": interval,
-		"chainId":  chart.ChainId,
-		"address":  chart.Address,
-		"time":     chart.Time,
-	}
-	update := bson.M{
-		"$setOnInsert": bson.M{
-			"interval": interval,
-			"chainId":  chart.ChainId,
-			"address":  chart.Address,
-			"time":     chart.Time,
-			"open":     chart.Open,
-			"high":     chart.Open,
-			"low":      chart.Open,
-			"close":    chart.Open,
-		},
-		"$inc": bson.M{
-			"volume.base":  chart.Volume.Base,
-			"volume.quote": chart.Volume.Quote,
-		},
-	}
-	return filter, update
-}
-
-func (m *MarketDB) BsonForMarketChartVolumesByIntervals(chart *market.Chart) *[]bson.M {
-	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
-
-	var open primitive.Decimal128
-	var pipeline []bson.M
-	pipeline = append(pipeline, bson.M{
-		"$match": bson.M{
-			"chainId": chart.ChainId,
-			"address": chart.Address,
-		},
-	})
-
-	for _, interval := range intervals {
-		time := commonutils.TruncateUnix(chart.Time, interval)
-		last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
-
-		if last != nil && last.Time == chart.Time {
-			open = last.Close
-		} else {
-			open = chart.Close
-		}
-
-		pipeline = append(pipeline, bson.M{
-			"$match": bson.M{
-				"time":     time,
-				"interval": interval,
-			},
-			"$setOnInsert": bson.M{
-				"interval": interval,
-				"chainId":  chart.ChainId,
-				"address":  chart.Address,
-				"time":     chart.Time,
-				"open":     open,
-				"high":     open,
-				"low":      open,
-				"close":    open,
-			},
-			"$inc": bson.M{
-				"volume.base":  chart.Volume.Base,
-				"volume.quote": chart.Volume.Quote,
-			},
-		})
-	}
-
-	return &pipeline
 }
 
 func (m *MarketDB) BsonForMarketLiquidity(chainId, address *string, liquidity *[]*market.MarketLiquidity) (bson.M, bson.A) {
