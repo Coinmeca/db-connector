@@ -388,15 +388,12 @@ func (v *VaultDB) GetRate24hAgo(chainId, address *string) (*primitive.Decimal128
 	ago := time - 86400
 
 	pipeline := mongo.Pipeline{
-		// 24시간 전 이후의 데이터 필터링
 		{{"$match", bson.M{
 			"chainId": chainId,
 			"address": strings.ToLower(*address),
 			"time":    bson.M{"$gte": ago},
 		}}},
-
 		{{"$sort", bson.M{"timeDiff": 1}}},
-		// 가장 근접한 문서 1개만 선택
 		{{"$limit", 1}},
 	}
 
@@ -425,15 +422,12 @@ func (v *VaultDB) GetLocked24hAgo(chainId, address *string) (*primitive.Decimal1
 	ago := time - 86400
 
 	pipeline := mongo.Pipeline{
-		// 24시간 전 이후의 데이터 필터링
 		{{"$match", bson.M{
 			"chainId": chainId,
 			"address": strings.ToLower(*address),
 			"time":    bson.M{"$gte": ago},
 		}}},
-
 		{{"$sort", bson.M{"timeDiff": 1}}},
-		// 가장 근접한 문서 1개만 선택
 		{{"$limit", 1}},
 	}
 
@@ -462,15 +456,12 @@ func (v *VaultDB) GetWeight24hAgo(chainId, address *string) (*primitive.Decimal1
 	ago := time - 86400
 
 	pipeline := mongo.Pipeline{
-		// 24시간 전 이후의 데이터 필터링
 		{{"$match", bson.M{
 			"chainId": chainId,
 			"address": strings.ToLower(*address),
 			"time":    bson.M{"$gte": ago},
 		}}},
-
 		{{"$sort", bson.M{"timeDiff": 1}}},
-		// 가장 근접한 문서 1개만 선택
 		{{"$limit", 1}},
 	}
 
@@ -500,15 +491,12 @@ func (v *VaultDB) GetValueLocked24hAgo(chainId, address *string) (*primitive.Dec
 	ago := time - 86400
 
 	pipeline := mongo.Pipeline{
-		// 24시간 전 이후의 데이터 필터링
 		{{"$match", bson.M{
 			"chainId": chainId,
 			"address": strings.ToLower(*address),
 			"time":    bson.M{"$gte": ago},
 		}}},
-
 		{{"$sort", bson.M{"timeDiff": 1}}},
-		// 가장 근접한 문서 1개만 선택
 		{{"$limit", 1}},
 	}
 

@@ -70,7 +70,6 @@ func NewDB(config *conf.Config, key *key.KeyManager) (commondatabase.IRepository
 		return nil, err
 	}
 
-	// 수정된 부분: client.Ping 호출이 성공했을 때 컬렉션 초기화
 	if err = r.client.Ping(context.Background(), nil); err == nil {
 		db := r.client.Database(config.Repositories["contractDB"]["db"].(string))
 		r.ColContract = db.Collection("contract")
@@ -79,7 +78,6 @@ func NewDB(config *conf.Config, key *key.KeyManager) (commondatabase.IRepository
 		return nil, err
 	}
 
-	//commonlog.Trace("load repository :", "ContractDB", r.conf.Common)
 	commonlog.Logger.Debug("load repository",
 		zap.String("contractDB", r.conf.Common.ServiceId),
 	)

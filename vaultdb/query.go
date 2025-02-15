@@ -12,54 +12,34 @@ import (
 
 func (v *VaultDB) BsonForInfo(info *vault.Vault) (bson.M, bson.M) {
 	var zero primitive.Decimal128
-	var update bson.M
 
 	filter := bson.M{
 		"chainId": info.ChainId,
 		"address": info.Address,
 	}
 
-	if info.Value != zero {
-		update = bson.M{
-			"$set": bson.M{
-				"chainId":  info.ChainId,
-				"address":  info.Address,
-				"key":      info.Key,
-				"name":     info.Name,
-				"symbol":   info.Symbol,
-				"decimals": info.Decimals,
-				"rate":     info.Rate,
-				"ratio":    info.Ratio,
-				"weight":   info.Weight,
-				"need":     info.Need,
-				"require":  info.Require,
-				"locked":   info.Locked,
-				// todo: $cond 로 변경?
-				"value": info.Value,
-			},
-		}
-	} else {
-		update = bson.M{
-			"$set": bson.M{
-				"chainId":  info.ChainId,
-				"address":  info.Address,
-				"key":      info.Key,
-				"name":     info.Name,
-				"symbol":   info.Symbol,
-				"decimals": info.Decimals,
-				"rate":     info.Rate,
-				"ratio":    info.Ratio,
-				"weight":   info.Weight,
-				"need":     info.Need,
-				"require":  info.Require,
-				"locked":   info.Locked,
-			},
-			"$setOnInsert": bson.M{
-				"value": zero,
-			},
-		}
+	update := bson.M{
+		"chainId":  info.ChainId,
+		"address":  info.Address,
+		"key":      info.Key,
+		"name":     info.Name,
+		"symbol":   info.Symbol,
+		"decimals": info.Decimals,
+		"rate":     info.Rate,
+		"ratio":    info.Ratio,
+		"weight":   info.Weight,
+		"need":     info.Need,
+		"require":  info.Require,
+		"locked":   info.Locked,
 	}
 
+	if info.Value != zero {
+		update["value"] = info.Value
+	} else {
+		update["value"] = zero
+	}
+
+	update = bson.M{"$set": update}
 	return filter, update
 }
 
@@ -204,7 +184,6 @@ func (v *VaultDB) BsonForVaultWeight(recent *vault.Recent) (bson.M, bson.M) {
 				"locked": recent.Amount,
 				"weight": recent.Meca,
 				"mint":   recent.Meca,
-				// TODO:
 			},
 		}
 	} else {
@@ -214,7 +193,6 @@ func (v *VaultDB) BsonForVaultWeight(recent *vault.Recent) (bson.M, bson.M) {
 				"burn":   recent.Meca,
 				"locked": commonutils.SubDecimal128(&zero, &recent.Amount),
 				"weight": commonutils.SubDecimal128(&zero, &recent.Meca),
-				// TODO:
 			},
 		}
 	}

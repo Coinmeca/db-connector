@@ -132,7 +132,6 @@ func (h *HistoryDB) PollingTxs(ctx context.Context, notificationChan chan<- *com
 					continue
 				}
 
-				// Convert string ID back to ObjectID
 				newLastProcessedId, err := primitive.ObjectIDFromHex(txData.Id)
 				if err != nil {
 					commonlog.Logger.Error("Error converting string ID to ObjectID", zap.Error(err))

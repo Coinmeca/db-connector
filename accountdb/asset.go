@@ -119,8 +119,6 @@ func (a *AccountDB) UpdateAccountAsset(
 	)
 
 	filter, update := a.BsonForUpdateAccountAsset(*chainId, *user, asset)
-	// fixme: 상황에 따라 필요하면 업데이트된 값 리턴, update에서는 당장 필요없을듯함
-	// return nil / err 로 업데이트 성공 / 실패 여부만 열려주면 될듯함
 	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := a.ColAssets.FindOneAndUpdate(

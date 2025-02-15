@@ -72,10 +72,9 @@ func (m *MarketDB) GetLastAll(time *int64, last *market.Last) {
 		}}},
 		{{"$project", bson.M{
 			"price": "$open",
-			// NOTE: 아래 필드 추가되어야 반영됨.. 이유는 왜?
+			// note: if you want to sort by time, need to add time field in project
 			"time": "$time",
 		}}},
-		// 소팅 해야하는데 필드가 없어서?
 		{{"$sort", bson.M{"time": 1}}},
 		{{"$limit", 1}},
 	}
