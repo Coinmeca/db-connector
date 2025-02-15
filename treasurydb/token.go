@@ -36,10 +36,10 @@ func (t *TreasuryDB) SetValue(symbol, name string, value *primitive.Decimal128) 
 	return nil
 }
 
-func (t *TreasuryDB) GetValue(name, symbol *string) (*primitive.Decimal128, error) {
+func (t *TreasuryDB) GetValue(symbol, name *string) (*primitive.Decimal128, error) {
 	filter := bson.M{
-		"name":   name,
 		"symbol": symbol,
+		"name":   name,
 	}
 
 	value := &primitive.Decimal128{}

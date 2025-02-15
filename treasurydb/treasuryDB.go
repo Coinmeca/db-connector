@@ -43,7 +43,7 @@ type TreasuryDBInterface interface {
 	GetTokens() ([]*bson.M, error)
 	GetTreasuryChart(chainId *string) ([]*treasury.Chart, error)
 	GetTreasuryChartLast(chainId *string) (*treasury.Last, error)
-	GetValue(name *string, symbol *string) (*primitive.Decimal128, error)
+	GetValue(symbol *string, name *string) (*primitive.Decimal128, error)
 	GetValues() (*map[string]primitive.Decimal128, error)
 
 	// setter

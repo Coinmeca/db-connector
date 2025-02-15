@@ -7,7 +7,6 @@ import (
 	"github.com/coinmeca/go-common/commondatabase"
 	"github.com/coinmeca/go-common/commonlog"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -46,6 +45,20 @@ func (c *ContractDB) GetChains() []*commondatabase.Chain {
 	return result
 }
 
+func (c *ContractDB) GetChain(chainId *string) *commondatabase.Chain {
+	result := &commondatabase.Chain{}
+
+	filter := bson.M{"chainId": chainId}
+	if err := c.ColChain.FindOne(context.Background(), filter, nil).Decode(&result); err != nil {
+		commonlog.Logger.Error("GetChain",
+			zap.String("not found ", err.Error()),
+		)
+		return nil
+	}
+
+	return result
+}
+
 func (c *ContractDB) GetTargetChains() []string {
 	now := time.Now().Unix()
 	if c.chainsUpdate > (now-86400) && c.chains != nil && len(c.chains) > 0 {
@@ -70,16 +83,4 @@ func (c *ContractDB) GetTargetChains() []string {
 	c.chains = chains
 	c.chainsUpdate = now
 	return chains
-}
-
-func (c *ContractDB) GetChainInfos(result *[]commondatabase.Chain) error {
-	filter := bson.M{}
-	findOptions := options.Find().SetSort(bson.M{"_id": 1})
-	if cursor, err := c.ColChainInfo.Find(context.Background(), filter, findOptions); err != nil {
-		return err
-	} else {
-		defer cursor.Close(context.Background())
-		cursor.All(context.Background(), result)
-		return nil
-	}
 }
