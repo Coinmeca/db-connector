@@ -33,9 +33,9 @@ type AccountDBInterface interface {
 	BsonForGetAccountPositions(chainId *string, user *string, asset *string) (bson.M, bson.M)
 	BsonForInitAccountPosition(asset *account.Asset) (bson.M, bson.M)
 	BsonForUpdateAccountAsset(chainId string, account string, asset *account.Asset) (bson.M, bson.M)
-	BsonForUpdateAccountAssetUse(tradeType account.TradeType, chainId *string, account *string, asset *string, amount *primitive.Decimal128, count int64) (bson.M, bson.A)
 	BsonForUpdateAccountAssets(chainId string, account string, assets []*account.Asset) *[]mongo.WriteModel
-	BsonForUpdateAccountOrder(tradeType account.TradeType, chainId *string, account *string, asset *string, amount *primitive.Decimal128, count int64) (bson.M, bson.A)
+	BsonForUpdateAccountAssetUse(tradeType account.TradeType, chainId *string, account *string, asset *string, amount *primitive.Decimal128, count int64) (bson.M, bson.A)
+	BsonForUpdateAccountOrder(tradeType account.TradeType, chainId *string, account *string, asset *string, amount, leverage *primitive.Decimal128, count int64) (bson.M, bson.A)
 	BsonForUpdateAccountPosition(asset *account.Asset) (bson.M, bson.M)
 
 	// calculate

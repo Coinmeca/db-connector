@@ -128,6 +128,79 @@ func (t *AccountDB) BsonForUpdateAccountOrder(
 	return filter, update
 }
 
+func (t *AccountDB) BsonForUpdateAccountOrderWithLeverage(
+	tradeType account.TradeType,
+	chainId, account, asset *string,
+	amount, leverage *primitive.Decimal128,
+	count int64,
+) (bson.M, bson.A) {
+	zero := primitive.Decimal128{}
+	counts := strings.ToLower(fmt.Sprintf("$count.%s", tradeType.String()))
+
+	filter := bson.M{
+		"chainId": *chainId,
+		"account": *account,
+		"address": *asset,
+	}
+
+	update := bson.A{
+		bson.M{
+			"$set": bson.M{
+				counts: bson.M{
+					"$cond": bson.A{
+						bson.M{"$lt": bson.A{
+							bson.M{"$add": bson.A{
+								bson.M{"$ifNull": bson.A{"$" + counts, zero}},
+								count,
+							}},
+							zero,
+						}},
+						zero,
+						bson.M{"$add": bson.A{
+							bson.M{"$ifNull": bson.A{"$" + counts, zero}},
+							count,
+						}},
+					},
+				},
+				"order": bson.M{
+					"$cond": bson.A{
+						bson.M{"$lt": bson.A{
+							bson.M{"$add": bson.A{
+								bson.M{"$ifNull": bson.A{"$order", zero}},
+								amount,
+							}},
+							zero,
+						}},
+						zero,
+						bson.M{"$add": bson.A{
+							bson.M{"$ifNull": bson.A{"$order", zero}},
+							amount,
+						}},
+					},
+				},
+				"leverage": bson.M{
+					"$cond": bson.A{
+						bson.M{"$lt": bson.A{
+							bson.M{"$add": bson.A{
+								bson.M{"$ifNull": bson.A{"$order", zero}},
+								leverage,
+							}},
+							zero,
+						}},
+						zero,
+						bson.M{"$add": bson.A{
+							bson.M{"$ifNull": bson.A{"$order", zero}},
+							leverage,
+						}},
+					},
+				},
+			},
+		},
+	}
+
+	return filter, update
+}
+
 func (t *AccountDB) BsonForUpdateAccountAssetUse(
 	tradeType account.TradeType,
 	chainId, account, asset *string,

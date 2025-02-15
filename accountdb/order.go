@@ -35,6 +35,31 @@ func (a *AccountDB) UpdateAccountOrder(
 	return nil
 }
 
+func (a *AccountDB) UpdateAccountOrderWithLeverage(
+	tradeType account.TradeType,
+	chainId, user, asset *string,
+	amount, leverage *primitive.Decimal128,
+	count int64,
+) error {
+	filter, update := a.BsonForUpdateAccountOrderWithLeverage(tradeType, chainId, user, asset, amount, leverage, count)
+	option := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	err := a.ColAssets.FindOneAndUpdate(
+		context.Background(),
+		filter,
+		update,
+		option,
+	).Decode(asset)
+	if err != nil {
+		commonlog.Logger.Error("UpdateAccountOrder",
+			zap.String(*asset, err.Error()),
+		)
+		return err
+	}
+
+	return nil
+}
+
 func (a *AccountDB) UpdateAccountAssetUse(
 	tradeType account.TradeType,
 	chainId, user, asset *string,
