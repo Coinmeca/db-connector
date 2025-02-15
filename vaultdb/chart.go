@@ -73,16 +73,21 @@ func (v *VaultDB) SaveChart(t *vault.Chart, interval int64) error {
 	return nil
 }
 
-func (v *VaultDB) SaveChartByIntervals(t *vault.Chart) error {
-	_, err := v.ColChart.Aggregate(
-		context.Background(),
-		*v.BsonForChartByIntervals(t),
-	)
+func (v *VaultDB) SaveChartByIntervals(chart *vault.Chart) error {
+	updates := v.BsonForChartByIntervals(chart)
 
-	// 에러 처리
+	var models []mongo.WriteModel
+	for _, update := range updates {
+		models = append(models, mongo.NewUpdateOneModel().
+			SetFilter(update["filter"]).
+			SetUpdate(update["update"]).
+			SetUpsert(true))
+	}
+
+	_, err := v.ColChart.BulkWrite(context.Background(), models)
 	if err != nil {
-		commonlog.Logger.Error("Vault SaveChart with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
+		commonlog.Logger.Error("Vault SaveChartByIntervals bulk write failed",
+			zap.String("error", err.Error()),
 		)
 		return err
 	}
@@ -138,14 +143,20 @@ func (v *VaultDB) SaveChartVolume(chart *vault.Chart, interval int64) error {
 }
 
 func (v *VaultDB) SaveChartVolumesByIntervals(chart *vault.Chart) error {
-	_, err := v.ColChart.Aggregate(
-		context.Background(),
-		v.BsonForChartByIntervals(chart),
-	)
+	updates := v.BsonForChartByIntervals(chart)
 
+	var models []mongo.WriteModel
+	for _, update := range updates {
+		models = append(models, mongo.NewUpdateOneModel().
+			SetFilter(update["filter"]).
+			SetUpdate(update["update"]).
+			SetUpsert(true))
+	}
+
+	_, err := v.ColChart.BulkWrite(context.Background(), models)
 	if err != nil {
-		commonlog.Logger.Error("Vault SaveChartVolumesByIntervals with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
+		commonlog.Logger.Error("Vault SaveChartByIntervals bulk write failed",
+			zap.String("error", err.Error()),
 		)
 		return err
 	}

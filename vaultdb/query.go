@@ -273,71 +273,53 @@ func (v *VaultDB) BsonForChartPrice(chart *vault.Chart, interval *int64) (bson.M
 	return filter, update
 }
 
-func (v *VaultDB) BsonForChartByIntervals(chart *vault.Chart) *[]bson.M {
-	intervals := []int64{5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
+func (m *VaultDB) BsonForChartByIntervals(chart *vault.Chart) []bson.M {
+	intervals := []int64{1, 5, 15, 30, 60, 120, 240, 1440, 10080, 43200}
 
-	var pipeline []bson.M
-	pipeline = append(pipeline, bson.M{
-		"$match": bson.M{
-			"chainId": chart.ChainId,
-			"address": chart.Address,
-		},
-	})
+	var updates []bson.M
 
 	for _, interval := range intervals {
 		time := commonutils.TruncateUnix(chart.Time, interval)
-		last := v.GetChartLast(&chart.ChainId, &chart.Address, &interval)
+		last := m.GetChartLast(&chart.ChainId, &chart.Address, &interval)
 		open := chart.Close
 
-		if last != nil && last.Time == time {
+		if last != nil && time != last.Time {
 			open = last.Close
 		}
 
-		pipeline = append(pipeline, bson.M{
-			"$match": bson.M{
-				"time":     time,
+		filter := bson.M{
+			"chainId":  chart.ChainId,
+			"address":  chart.Address,
+			"interval": interval,
+			"time":     time,
+		}
+
+		update := bson.M{
+			"$set": bson.M{
+				"close": chart.Close,
+			},
+			"$max": bson.M{
+				"high": chart.Close,
+			},
+			"$min": bson.M{
+				"low": chart.Close,
+			},
+			"$setOnInsert": bson.M{
+				"chainId":  chart.ChainId,
+				"address":  chart.Address,
 				"interval": interval,
+				"time":     time,
+				"open":     open,
 			},
-		})
+			"$inc": bson.M{
+				"volume": chart.Volume,
+			},
+		}
 
-		pipeline = append(pipeline, bson.M{
-			"$set": bson.M{
-				"time":     bson.M{"$ifNull": bson.A{"$time", time}},
-				"interval": bson.M{"$ifNull": bson.A{"$interval", interval}},
-				"chainId":  bson.M{"$ifNull": bson.A{"$chainId", chart.ChainId}},
-				"address":  bson.M{"$ifNull": bson.A{"$address", chart.Address}},
-				"open":     bson.M{"$ifNull": bson.A{"$open", open}},
-				"close":    chart.Close,
-			},
-		})
-
-		pipeline = append(pipeline, bson.M{
-			"$group": bson.M{
-				"_id": nil,
-				"high": bson.M{
-					"$max": "$close",
-				},
-				"low": bson.M{
-					"$min": "$close",
-				},
-			},
-		})
-
-		pipeline = append(pipeline, bson.M{
-			"$set": bson.M{
-				"high": "$high",
-				"low":  "$low",
-			},
-		})
-
-		pipeline = append(pipeline, bson.M{
-			"$set": bson.M{
-				"volume": bson.M{"$add": bson.A{"$volume", chart.Volume}},
-			},
-		})
+		updates = append(updates, bson.M{"filter": filter, "update": update})
 	}
 
-	return &pipeline
+	return updates
 }
 
 func (v *VaultDB) BsonForChartSub(chart *vault.ChartSub) (bson.M, bson.M) {

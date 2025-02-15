@@ -2,10 +2,12 @@
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/coinmeca/go-common/commonlog"
 	"github.com/coinmeca/go-common/commonmethod/market"
+	"github.com/coinmeca/go-common/commonutils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,14 +39,21 @@ func (m *MarketDB) SaveChart(chart *market.Chart, interval int64) error {
 }
 
 func (m *MarketDB) SaveChartByIntervals(chart *market.Chart) error {
-	_, err := m.ColChart.Aggregate(
-		context.Background(),
-		*m.BsonForChartByIntervals(chart),
-	)
+	updates := m.BsonForChartByIntervals(chart)
 
+	var models []mongo.WriteModel
+	for _, update := range updates {
+		models = append(models, mongo.NewUpdateOneModel().
+			SetFilter(update["filter"]).
+			SetUpdate(update["update"]).
+			SetUpsert(true))
+	}
+	fmt.Println(commonutils.Prettify(models))
+
+	_, err := m.ColChart.BulkWrite(context.Background(), models)
 	if err != nil {
-		commonlog.Logger.Error("Market SaveChart with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
+		commonlog.Logger.Error("Market SaveChartByIntervals bulk write failed",
+			zap.String("error", err.Error()),
 		)
 		return err
 	}
@@ -77,14 +86,20 @@ func (m *MarketDB) SaveChartVolume(chart *market.Chart, interval int64) error {
 }
 
 func (m *MarketDB) SaveChartVolumesByIntervals(chart *market.Chart) error {
-	_, err := m.ColChart.Aggregate(
-		context.Background(),
-		m.BsonForChartByIntervals(chart),
-	)
+	updates := m.BsonForChartByIntervals(chart)
 
+	var models []mongo.WriteModel
+	for _, update := range updates {
+		models = append(models, mongo.NewUpdateOneModel().
+			SetFilter(update["filter"]).
+			SetUpdate(update["update"]).
+			SetUpsert(true))
+	}
+
+	_, err := m.ColChart.BulkWrite(context.Background(), models)
 	if err != nil {
-		commonlog.Logger.Error("Market SaveChartVolumesByIntervals with pipeline",
-			zap.String("Failed to aggregate chart", err.Error()),
+		commonlog.Logger.Error("Market SaveChartByIntervals bulk write failed",
+			zap.String("error", err.Error()),
 		)
 		return err
 	}
